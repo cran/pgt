@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>Multiple pollutants and heterogeneous coefficients</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Multiple pollutants and heterogeneous
+coefficients</h1>
+
+
+
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(pgt)</span></code></pre></div>
+<p>A technology can carry several pollutants, each with its own
+materials-balance account, and the material flow coefficients can vary
+across units (heterogeneous input quality; Eder 2022, Rødseth 2025).
+This vignette demonstrates both features and the staged decomposition,
+on a small synthetic example.</p>
+<div id="a-two-pollutant-technology" class="section level2">
+<h2>A two-pollutant technology</h2>
+<p>Forty plants burn coal and gas. Each fuel carries CO2 potential and
+SO2 potential, with different coefficients; a share of the CO2 potential
+is retained in the product (<span class="math inline">\(v_{CO2} =
+0.1\)</span>), none of the SO2. <code>b</code> is a matrix with one
+named column per pollutant, <code>u</code> a named list with one element
+per pollutant, and <code>v</code> a named vector.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>L <span class="ot">&lt;-</span> <span class="dv">40</span></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>coal <span class="ot">&lt;-</span> <span class="fu">runif</span>(L, <span class="dv">20</span>, <span class="dv">60</span>)</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>gas <span class="ot">&lt;-</span> <span class="fu">runif</span>(L, <span class="dv">10</span>, <span class="dv">40</span>)</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">runif</span>(L, <span class="dv">15</span>, <span class="dv">45</span>)</span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>u_co2 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="at">coal =</span> <span class="fl">2.5</span>, <span class="at">gas =</span> <span class="fl">1.4</span>)</span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>u_so2 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="at">coal =</span> <span class="fl">0.020</span>, <span class="at">gas =</span> <span class="fl">0.001</span>)</span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>cap_co2 <span class="ot">&lt;-</span> <span class="fl">2.5</span> <span class="sc">*</span> coal <span class="sc">+</span> <span class="fl">1.4</span> <span class="sc">*</span> gas <span class="sc">-</span> <span class="fl">0.1</span> <span class="sc">*</span> y</span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>cap_so2 <span class="ot">&lt;-</span> <span class="fl">0.020</span> <span class="sc">*</span> coal <span class="sc">+</span> <span class="fl">0.001</span> <span class="sc">*</span> gas</span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>b_co2 <span class="ot">&lt;-</span> cap_co2 <span class="sc">*</span> <span class="fu">runif</span>(L, <span class="fl">0.55</span>, <span class="fl">0.95</span>)</span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>b_so2 <span class="ot">&lt;-</span> cap_so2 <span class="sc">*</span> <span class="fu">runif</span>(L, <span class="fl">0.55</span>, <span class="fl">0.95</span>)</span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a><span class="co"># three plants under-report scrubbing and breach their SO2 account</span></span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a>b_so2[<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>] <span class="ot">&lt;-</span> cap_so2[<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>] <span class="sc">*</span> <span class="fu">runif</span>(<span class="dv">3</span>, <span class="fl">1.05</span>, <span class="fl">1.25</span>)</span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a></span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a>tech2 <span class="ot">&lt;-</span> <span class="fu">pgt_tech</span>(</span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a>  <span class="at">x =</span> <span class="fu">cbind</span>(<span class="at">coal =</span> coal, <span class="at">gas =</span> gas),</span>
+<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a>  <span class="at">y =</span> y,</span>
+<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a>  <span class="at">b =</span> <span class="fu">cbind</span>(<span class="at">co2 =</span> b_co2, <span class="at">so2 =</span> b_so2),</span>
+<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a>  <span class="at">u =</span> <span class="fu">list</span>(<span class="at">co2 =</span> u_co2, <span class="at">so2 =</span> u_so2),</span>
+<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a>  <span class="at">v =</span> <span class="fu">c</span>(<span class="at">co2 =</span> <span class="fl">0.1</span>, <span class="at">so2 =</span> <span class="dv">0</span>),</span>
+<span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a>  <span class="at">group =</span> <span class="fu">factor</span>(<span class="fu">rep</span>(<span class="fu">c</span>(<span class="st">&quot;A&quot;</span>, <span class="st">&quot;B&quot;</span>), <span class="at">each =</span> L <span class="sc">/</span> <span class="dv">2</span>))</span>
+<span id="cb2-22"><a href="#cb2-22" tabindex="-1"></a>)</span>
+<span id="cb2-23"><a href="#cb2-23" tabindex="-1"></a>tech2</span>
+<span id="cb2-24"><a href="#cb2-24" tabindex="-1"></a><span class="co">#&gt; Pollution-generating technology</span></span>
+<span id="cb2-25"><a href="#cb2-25" tabindex="-1"></a><span class="co">#&gt;   DMUs: 40   inputs: 2   good outputs: 1   bad outputs: 2</span></span>
+<span id="cb2-26"><a href="#cb2-26" tabindex="-1"></a><span class="co">#&gt;   inputs: coal, gas</span></span>
+<span id="cb2-27"><a href="#cb2-27" tabindex="-1"></a><span class="co">#&gt;   material flow coefficients [co2]: u = [2.5, 1.4], v = 0.1</span></span>
+<span id="cb2-28"><a href="#cb2-28" tabindex="-1"></a><span class="co">#&gt;   material flow coefficients [so2]: u = [0.020, 0.001], v = 0</span></span>
+<span id="cb2-29"><a href="#cb2-29" tabindex="-1"></a><span class="co">#&gt;   groups: A (20), B (20)</span></span>
+<span id="cb2-30"><a href="#cb2-30" tabindex="-1"></a><span class="co">#&gt;   materials balance: 3 of 80 DMU-pollutant accounts violate the identity (see mb_check())</span></span></code></pre></div>
+<p><code>mb_check()</code> audits one account per plant and pollutant;
+the three seeded SO2 violations surface immediately.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>mb <span class="ot">&lt;-</span> <span class="fu">mb_check</span>(tech2)</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="fu">table</span>(<span class="fu">subset</span>(<span class="fu">as.data.frame</span>(mb), violated)<span class="sc">$</span>pollutant)</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co">#&gt; so2 </span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="co">#&gt;   3</span></span></code></pre></div>
+</div>
+<div id="every-pollutants-cap-constrains-the-projection" class="section level2">
+<h2>Every pollutant’s cap constrains the projection</h2>
+<p><code>pgt(model = &quot;wgd&quot;)</code> selects one pollutant for the
+objective through <code>pollutant</code>, but the caps of every
+pollutant constrain the peer mix (see
+<code>vignette(&quot;models&quot;, &quot;pgt&quot;)</code> for the collapsed cap rows). A
+peer that looks attractive on CO2 can be unusable because leaning on it
+would breach the evaluated plant’s SO2 account.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>fit_co2 <span class="ot">&lt;-</span> <span class="fu">pgt</span>(tech2, <span class="at">model =</span> <span class="st">&quot;wgd&quot;</span>, <span class="at">pollutant =</span> <span class="st">&quot;co2&quot;</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="fu">summary</span>(fit_co2)</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co">#&gt; pgt fit: model = wgd, returns = vrs, peers = all</span></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="co">#&gt;   pollutant: co2</span></span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="co">#&gt;   DMUs: 40   failed LPs: 0</span></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="co">#&gt; Efficiency (b*/b):</span></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="co">#&gt;     0%    25%    50%    75%   100% </span></span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="co">#&gt; 0.2716 0.3897 0.5354 0.8206 1.0000 </span></span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="co">#&gt; By group:</span></span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a><span class="co">#&gt;  group  n n_na median   mean median_dual_output</span></span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a><span class="co">#&gt;      A 20    0 0.4644 0.5236              2.645</span></span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a><span class="co">#&gt;      B 20    0 0.6411 0.6751              2.716</span></span></code></pre></div>
+<p>Dropping the SO2 account (a single-pollutant technology on the same
+data) weakly lowers every <code>b_star</code>, since the projection
+loses one set of constraints:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>tech1 <span class="ot">&lt;-</span> <span class="fu">pgt_tech</span>(</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>  <span class="at">x =</span> <span class="fu">cbind</span>(<span class="at">coal =</span> coal, <span class="at">gas =</span> gas), <span class="at">y =</span> y, <span class="at">b =</span> b_co2, <span class="at">u =</span> u_co2,</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>  <span class="at">v =</span> <span class="fl">0.1</span>, <span class="at">group =</span> <span class="fu">factor</span>(<span class="fu">rep</span>(<span class="fu">c</span>(<span class="st">&quot;A&quot;</span>, <span class="st">&quot;B&quot;</span>), <span class="at">each =</span> L <span class="sc">/</span> <span class="dv">2</span>))</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>)</span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>fit1 <span class="ot">&lt;-</span> <span class="fu">pgt</span>(tech1, <span class="at">model =</span> <span class="st">&quot;wgd&quot;</span>)</span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a><span class="fu">summary</span>(fit1<span class="sc">$</span>results<span class="sc">$</span>b_star <span class="sc">-</span> fit_co2<span class="sc">$</span>results<span class="sc">$</span>b_star)</span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a><span class="co">#&gt;       Min.    1st Qu.     Median       Mean    3rd Qu.       Max. </span></span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a><span class="co">#&gt; -1.421e-14  2.842e-14  4.263e-14  8.148e-13  6.573e-14  1.027e-11</span></span></code></pre></div>
+<p>The three SO2 violators show the documented boundary behaviour: a
+plant violating another pollutant’s identity loses its self-reference,
+so its CO2 score can exceed 1 (its MB-consistent projection emits more
+CO2 than the plant reports) or its programme can be infeasible. Neither
+happens for plants whose accounts all hold.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">cbind</span>(fit_co2<span class="sc">$</span>results[<span class="fu">c</span>(<span class="st">&quot;id&quot;</span>, <span class="st">&quot;efficiency&quot;</span>, <span class="st">&quot;status&quot;</span>)],</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>           <span class="at">so2_violated =</span> mb<span class="sc">$</span>violated[mb<span class="sc">$</span>pollutant <span class="sc">==</span> <span class="st">&quot;so2&quot;</span>]), <span class="dv">5</span>)</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="co">#&gt;   id efficiency status so2_violated</span></span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a><span class="co">#&gt; 1  1  0.4613612      0         TRUE</span></span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="co">#&gt; 2  2  0.3388767      0         TRUE</span></span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a><span class="co">#&gt; 3  3  0.8210681      0         TRUE</span></span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a><span class="co">#&gt; 4  4  0.4116247      0        FALSE</span></span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a><span class="co">#&gt; 5  5  0.6013043      0        FALSE</span></span></code></pre></div>
+</div>
+<div id="dmu-specific-coefficients" class="section level2">
+<h2>DMU-specific coefficients</h2>
+<p>Coefficients can vary by plant, for example with coal quality (Eder
+2022): pass an <span class="math inline">\(L \times N\)</span> matrix
+per pollutant instead of a vector. Here the first twenty plants burn
+higher-carbon coal.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>U_co2 <span class="ot">&lt;-</span> <span class="fu">matrix</span>(u_co2, L, <span class="dv">2</span>, <span class="at">byrow =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>                <span class="at">dimnames =</span> <span class="fu">list</span>(<span class="cn">NULL</span>, <span class="fu">c</span>(<span class="st">&quot;coal&quot;</span>, <span class="st">&quot;gas&quot;</span>)))</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>U_co2[<span class="dv">1</span><span class="sc">:</span><span class="dv">20</span>, <span class="st">&quot;coal&quot;</span>] <span class="ot">&lt;-</span> <span class="fl">2.8</span></span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>tech_het <span class="ot">&lt;-</span> <span class="fu">pgt_tech</span>(</span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>  <span class="at">x =</span> <span class="fu">cbind</span>(<span class="at">coal =</span> coal, <span class="at">gas =</span> gas), <span class="at">y =</span> y,</span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>  <span class="at">b =</span> <span class="fu">pmin</span>(b_co2, (<span class="fl">2.8</span> <span class="sc">*</span> coal <span class="sc">+</span> <span class="fl">1.4</span> <span class="sc">*</span> gas <span class="sc">-</span> <span class="fl">0.1</span> <span class="sc">*</span> y) <span class="sc">*</span> <span class="fl">0.95</span>),</span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>  <span class="at">u =</span> U_co2, <span class="at">v =</span> <span class="fl">0.1</span></span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>)</span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a>fit_het <span class="ot">&lt;-</span> <span class="fu">pgt</span>(tech_het, <span class="at">model =</span> <span class="st">&quot;wgd&quot;</span>)</span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a><span class="fu">median</span>(fit_het<span class="sc">$</span>results<span class="sc">$</span>efficiency, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a><span class="co">#&gt; [1] 0.5354456</span></span></code></pre></div>
+<p>Each plant’s cap now uses its own coefficients, so two plants with
+the same fuel bill face different materials-balance ceilings.</p>
+</div>
+<div id="the-staged-decomposition" class="section level2">
+<h2>The staged decomposition</h2>
+<p>With a technology group, <code>pgt_decompose(type = &quot;rodseth&quot;)</code>
+decomposes the full weak-G-disposability score in three stages:
+own-group peers (technical efficiency), all peers (technology gap), and
+all peers with the input constraints dropped (input-mix component), an
+exact multiplicative identity for rows with all stages feasible.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>dec <span class="ot">&lt;-</span> <span class="fu">pgt_decompose</span>(tech2, <span class="at">type =</span> <span class="st">&quot;rodseth&quot;</span>, <span class="at">pollutant =</span> <span class="st">&quot;co2&quot;</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="co">#&gt; Warning: 1 of 40 DMUs have infeasible or failed stage LPs; the affected</span></span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="co">#&gt; components are NA. This flags DMUs violating a materials-balance identity; run</span></span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="co">#&gt; mb_check().</span></span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a><span class="fu">summary</span>(dec)</span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="co">#&gt; pgt decomposition: type = rodseth, returns = vrs, DMUs = 40</span></span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a><span class="co">#&gt;   components: te x technology x ae (product = total)</span></span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a><span class="co">#&gt; Group medians (components, total, attribution shares):</span></span>
+<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a><span class="co">#&gt;  group  n n_na    te technology ae total share_te share_technology  share_ae</span></span>
+<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a><span class="co">#&gt;      A 20    1 0.492      0.929  1 0.464    0.932           0.0578 -2.69e-16</span></span>
+<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a><span class="co">#&gt;      B 20    0 0.691      0.933  1 0.591    0.860           0.0859 -3.03e-16</span></span>
+<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a><span class="co">#&gt; (share_* are medians of DMU-level shares; they need not sum to 1.</span></span>
+<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a><span class="co">#&gt;  n_na counts DMUs with any NA component.)</span></span></code></pre></div>
+<p>The caveats of the estimator carry over: a plant violating another
+pollutant’s account can have <code>te</code> and <code>total</code>
+above 1, and infeasible stages return <code>NA</code> (see
+<code>?pgt_decompose</code>).</p>
+</div>
+<div id="references" class="section level2">
+<h2>References</h2>
+<ul>
+<li>Eder, A. (2022). Environmental efficiency measurement when producers
+control pollutants under heterogeneous conditions: a generalization of
+the materials balance approach. <em>Journal of Productivity
+Analysis</em>, 57(2), 157-176. <a href="doi:10.1007/s11123-021-00623-y" class="uri">doi:10.1007/s11123-021-00623-y</a></li>
+<li>Rødseth, K. L. (2025). On the development of a unified,
+nonparametric materials balance-based efficiency analysis model and its
+applications. <em>Journal of Productivity Analysis</em>, 64(3), 305-319.
+<a href="doi:10.1007/s11123-025-00768-0" class="uri">doi:10.1007/s11123-025-00768-0</a></li>
+</ul>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

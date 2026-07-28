@@ -1,0 +1,56 @@
+## ----include = FALSE----------------------------------------------------------
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 6,
+                      fig.height = 4)
+
+## ----setup--------------------------------------------------------------------
+library(pgt)
+
+## -----------------------------------------------------------------------------
+data(steeldemo)
+tech <- pgt_tech(
+  x = steeldemo[, c("coal_coke", "other_fuel", "raw_material", "flux")],
+  y = steeldemo$production,
+  b = steeldemo$emissions,
+  v = 0.01467,
+  group = steeldemo$route,
+  id = steeldemo$plant
+)
+tech
+
+## -----------------------------------------------------------------------------
+mb <- mb_check(tech)
+head(as.data.frame(mb))
+attr(mb, "n_violations")
+
+## -----------------------------------------------------------------------------
+fit <- pgt(tech, model = "wgd")
+summary(fit)
+
+## -----------------------------------------------------------------------------
+fit_env <- pgt(tech, model = "envelope")
+summary(fit_env)
+
+## ----fig.alt = "Step curve of marginal abatement cost against cumulative abatement potential"----
+head(shadow_prices(fit))
+mac <- mac_curve(fit, price = 550)
+plot(mac)
+
+## -----------------------------------------------------------------------------
+dec <- pgt_decompose(tech, type = "envelope")
+summary(dec)
+
+## ----eval = requireNamespace("frontier", quietly = TRUE)----------------------
+data("riceProdPhil", package = "frontier")
+d8 <- riceProdPhil[riceProdPhil$YEARDUM == 8, ]
+uN <- 0.46
+rice <- pgt_tech(
+  x = as.matrix(d8[, c("AREA", "LABOR", "NPK", "OTHER")]),
+  y = d8$PROD,
+  b = uN * d8$NPK,
+  u = c(AREA = 0, LABOR = 0, NPK = uN, OTHER = 0),
+  v = 0,
+  id = as.character(d8$FMERCODE)
+)
+rice_fit <- pgt(rice, model = "wgd")
+summary(rice_fit)
+

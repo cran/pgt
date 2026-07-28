@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>The estimating programmes</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">The estimating programmes</h1>
+
+
+
+<p>Every estimator in <code>pgt</code> solves one linear programme per
+evaluated unit <span class="math inline">\(i\)</span> against a
+reference (peer) set. This vignette states each programme as solved, so
+the mapping from the cited papers to the code can be checked without
+reading the source. Throughout, <span class="math inline">\(\lambda \ge
+0\)</span> are intensity weights over the peers, <span class="math inline">\(x\)</span> the <span class="math inline">\(N\)</span> material inputs, <span class="math inline">\(y\)</span> the good output, <span class="math inline">\(b\)</span> the bad output of the selected
+pollutant, and the variable-returns row <span class="math inline">\(\sum_l \lambda_l = 1\)</span> is dropped under
+constant returns. The materials-balance cap of unit <span class="math inline">\(i\)</span> for pollutant <span class="math inline">\(p\)</span> is <span class="math inline">\(c_{pi} =
+u_{pi}&#39;x_i - v_{pi} y_i\)</span>, with DMU-specific coefficients
+<span class="math inline">\(u_{pi}\)</span> (a row of the <span class="math inline">\(L \times N \times P\)</span> array) and <span class="math inline">\(v_{pi}\)</span>.</p>
+<div id="weak-g-disposability-model-wgd" class="section level2">
+<h2>Weak-G-disposability (<code>model = &quot;wgd&quot;</code>)</h2>
+<p>The reduced form of Rødseth (2025, Eq. 6) used by the package is
+<span class="math display">\[
+\begin{aligned}
+\min_{\lambda,\, b_q}\quad &amp; b_q \\
+\text{s.t.}\quad
+&amp; \textstyle\sum_l \lambda_l y_l \ge y_i, \\
+&amp; \textstyle\sum_l \lambda_l x_{nl} \le x_{ni}, \qquad n = 1, \dots,
+N,\\
+&amp; \textstyle\sum_l \lambda_l b_l \le b_q, \\
+&amp; b_q \le c_{pi}, \\
+&amp; \textstyle\sum_l \lambda_l b_{ql} \le c_{qi}, \qquad q \ne p,\\
+&amp; \textstyle\sum_l \lambda_l = 1, \qquad \lambda \ge 0,\ b_q \ge 0.
+\end{aligned}
+\]</span> The first three rows are the free-disposal envelope of
+outputs, inputs and the peer emissions; the cap row keeps the projected
+bad output consistent with the evaluated unit’s own pollutant potential,
+which is how the weak-G summing-up condition on the disposal slacks
+enters the reduced form. The environmental efficiency is <span class="math inline">\(b^*/b_i\)</span>. Faithfulness to the paper is
+exercised numerically: the programme reproduces the Table 2 minima of
+Rødseth (2025) and agrees with an independent reference implementation
+in the test suite.</p>
+<p>With several pollutants, each remaining pollutant <span class="math inline">\(q \ne p\)</span> contributes the single row shown
+above. This collapse is exact: pollutant <span class="math inline">\(q\)</span> carries no objective term, so
+introducing its own emission variable <span class="math inline">\(b_q&#39;\)</span> with <span class="math inline">\(\sum_l \lambda_l b_{ql} \le b_q&#39; \le
+c_{qi}\)</span> is feasible exactly when the combined row <span class="math inline">\(\sum_l \lambda_l b_{ql} \le c_{qi}\)</span> holds
+(take <span class="math inline">\(b_q&#39; = \sum_l \lambda_l
+b_{ql}\)</span>).</p>
+<p>A unit whose own account violates a cap (<span class="math inline">\(b_{qi} &gt; c_{qi}\)</span> for some <span class="math inline">\(q\)</span>) loses its self-reference: its
+programme is feasible only if some peer mix satisfies every row, it may
+be infeasible (an <code>NA</code> score), and its projection can emit
+more of pollutant <span class="math inline">\(p\)</span> than observed,
+so its score can exceed 1. Units satisfying every account always solve
+with scores in <span class="math inline">\((0, 1]\)</span>.</p>
+</div>
+<div id="the-y-b-lower-envelope-model-envelope" class="section level2">
+<h2>The <span class="math inline">\((y, b)\)</span> lower envelope
+(<code>model = &quot;envelope&quot;</code>)</h2>
+<p>Freeing the inputs reduces Eq. 6 to the convex lower envelope of the
+<span class="math inline">\((y, b)\)</span> scatter: <span class="math display">\[
+\min_{\lambda}\ \textstyle\sum_l \lambda_l b_l
+\quad\text{s.t.}\quad
+\textstyle\sum_l \lambda_l y_l \ge y_i,\qquad
+\textstyle\sum_l \lambda_l = 1,\qquad \lambda \ge 0.
+\]</span> With the inputs free, the weak-G slack equality is absorbed by
+the input reallocation: whatever peer mix is chosen, the inputs adjust
+with it and the emissions follow the pollutant they carry.
+Self-reference is always feasible, so every score lies in <span class="math inline">\((0, 1]\)</span>.</p>
+</div>
+<div id="the-directional-representation-model-fdmo" class="section level2">
+<h2>The directional representation (<code>model = &quot;fdmo&quot;</code>)</h2>
+<p>The factorially determined multi-output form of Rødseth (2025, Eq.
+13), with the abatement output <span class="math inline">\(a\)</span>
+held at the evaluated unit’s own level: <span class="math display">\[
+\begin{aligned}
+\max_{\lambda,\, \theta_y,\, \theta_b}\quad &amp; \theta_y + \theta_b \\
+\text{s.t.}\quad
+&amp; \textstyle\sum_l \lambda_l y_l - \theta_y \ge y_i, \\
+&amp; \textstyle\sum_l \lambda_l a_l \ge a_i, \\
+&amp; \textstyle\sum_l \lambda_l x_{nl} \le x_{ni}, \qquad n = 1, \dots,
+N,\\
+&amp; v_i\,\theta_y - \theta_b = c_{pi} - b_i - a_i, \\
+&amp; \textstyle\sum_l \lambda_l = 1, \qquad
+  \lambda \ge 0,\ \theta_y \ge 0,\ \theta_b \ge 0.
+\end{aligned}
+\]</span> The materials-balance row is an exact equality, so the model
+requires accounts that close exactly (<span class="math inline">\(c_{pi}
+= b_i + a_i\)</span>); open accounts either make the programme
+infeasible or shift the closure gap into the scores, and
+<code>pgt()</code> warns when it detects them. When the account closes,
+the row forces <span class="math inline">\(\theta_b =
+v_i\,\theta_y\)</span>. The gross inefficiency <span class="math inline">\(\theta_y + \theta_b\)</span> adds good-output
+units to bad-output units (direction <span class="math inline">\((1,
+1)\)</span>), so it is unit-dependent.</p>
+</div>
+<div id="the-materials-balance-cost-model-model-mb_cost" class="section level2">
+<h2>The materials-balance cost model
+(<code>model = &quot;mb_cost&quot;</code>)</h2>
+<p>Coelli, Lauwers and Van Huylenbroeck (2007), with the material flow
+coefficients in the role of prices. Two programmes: radial technical
+efficiency, <span class="math display">\[
+TE = \min\{\theta :\ \textstyle\sum_l \lambda_l x_{nl} \le \theta
+x_{ni}\ \forall n,\ \sum_l \lambda_l y_l \ge y_i,\ \sum_l \lambda_l =
+1\},
+\]</span> and the material-inflow minimisation over a free input point
+<span class="math inline">\(\chi\)</span>, <span class="math display">\[
+EE = \frac{\min\{u_{pi}&#39;\chi :\ \sum_l \lambda_l x_{nl} \le \chi_n\
+\forall n,\ \sum_l \lambda_l y_l \ge y_i,\ \sum_l \lambda_l = 1\}}
+{u_{pi}&#39;x_i},
+\]</span> with environmental-allocative efficiency <span class="math inline">\(EAE = EE / TE\)</span>. The headline score is
+<span class="math inline">\(EE\)</span>, a material-inflow ratio rather
+than an emission ratio; the implied minimal controlled emission <span class="math inline">\(u_{pi}&#39;\chi^* - v_{pi} y_i\)</span> is
+reported as <code>b_star</code> and can be negative under DMU-specific
+coefficients, in which case <code>pgt()</code> warns.</p>
+</div>
+<div id="the-by-production-intersection-model-byprod" class="section level2">
+<h2>The by-production intersection (<code>model = &quot;byprod&quot;</code>)</h2>
+<p>Murty, Russell and Levkoff (2012): the technology is the intersection
+of an intended-production sub-technology and a residual-generation
+sub-technology over the emission-causing inputs <span class="math inline">\(\mathcal{P}\)</span>. Output efficiency inverts
+the maximal radial expansion of <span class="math inline">\(y\)</span>,
+<span class="math display">\[
+E_1 = 1 \big/ \max\{\phi :\ \textstyle\sum_l \lambda_l y_l \ge \phi
+y_i,\ \sum_l \lambda_l x_{nl} \le x_{ni}\ \forall n,\ \sum_l \lambda_l
+= 1\},
+\]</span> and emission efficiency is the maximal radial contraction of
+<span class="math inline">\(b\)</span> with the polluting inputs bounded
+below, <span class="math display">\[
+E_2 = \min\{\psi :\ \textstyle\sum_l \mu_l b_l \le \psi b_i,\ \sum_l
+\mu_l x_{nl} \ge x_{ni}\ \forall n \in \mathcal{P},\ \sum_l \mu_l =
+1\}.
+\]</span> <span class="math inline">\(E_2\)</span> is the headline
+environmental efficiency; <code>fgl</code> is the arithmetic mean <span class="math inline">\((E_1 + E_2)/2\)</span>, in the spirit of the
+Färe-Grosskopf-Lovell graph measure. If either sub-programme fails,
+every score of that unit is <code>NA</code>.</p>
+</div>
+<div id="weak-disposability-model-wd" class="section level2">
+<h2>Weak disposability (<code>model = &quot;wd&quot;</code>)</h2>
+<p>The Kuosmanen (2005) variable-returns form, a reference system with
+no materials balance. The intensity weights split into an active part
+<span class="math inline">\(z\)</span> (scaling good and bad outputs
+together) and an abatement part <span class="math inline">\(w\)</span>
+(scaling inputs only): <span class="math display">\[
+\begin{aligned}
+\min_{z,\, w,\, \phi}\quad &amp; \phi \\
+\text{s.t.}\quad
+&amp; \textstyle\sum_l z_l y_l \ge y_i, \qquad
+  \textstyle\sum_l z_l b_l = \phi\, b_i, \\
+&amp; \textstyle\sum_l (z_l + w_l)\, x_{nl} \le x_{ni}, \qquad n = 1,
+  \dots, N,\\
+&amp; \textstyle\sum_l (z_l + w_l) = 1, \qquad z, w \ge 0.
+\end{aligned}
+\]</span> The equality on the bad output is weak disposability:
+emissions shrink only with a proportional scaling of the active
+production plan.</p>
+</div>
+<div id="the-productivity-index-distances-pgt_ml" class="section level2">
+<h2>The productivity-index distances (<code>pgt_ml()</code>)</h2>
+<p>The global Malmquist-Luenberger index scores every observation <span class="math inline">\(k\)</span> on a directional distance with
+direction <span class="math inline">\(g = (y_k, b_k)\)</span> against a
+reference set <span class="math inline">\(R\)</span> (a period or the
+pooled panel). Under <code>technology = &quot;wd&quot;</code> the distance uses
+the Kuosmanen weak-disposability technology above with <span class="math inline">\(\sum_{l \in R} z_l b_l = (1 - \beta) b_k\)</span>
+and <span class="math inline">\(\sum_{l \in R} z_l y_l \ge (1 + \beta)
+y_k\)</span>; this is the technology under which Chung, Färe and
+Grosskopf (1997) and Oh (2010) define the index. Under
+<code>technology = &quot;wgd&quot;</code> and <code>&quot;envelope&quot;</code> the
+bad-output row is the free-disposal envelope <span class="math inline">\(\sum_{l \in R} \lambda_l b_l \le (1 -
+\beta) b_k\)</span>, with and without the input rows; these exploratory
+variants bound emissions by the peer envelope rather than imposing weak
+disposability.</p>
+</div>
+<div id="references" class="section level2">
+<h2>References</h2>
+<ul>
+<li>Chung, Y. H., Färe, R., &amp; Grosskopf, S. (1997). Productivity and
+undesirable outputs: A directional distance function approach.
+<em>Journal of Environmental Management</em>, 51(3), 229-240. <a href="doi:10.1006/jema.1997.0146" class="uri">doi:10.1006/jema.1997.0146</a></li>
+<li>Coelli, T., Lauwers, L., &amp; Van Huylenbroeck, G. (2007).
+Environmental efficiency measurement and the materials balance
+condition. <em>Journal of Productivity Analysis</em>, 28(1-2), 3-12. <a href="doi:10.1007/s11123-007-0052-8" class="uri">doi:10.1007/s11123-007-0052-8</a></li>
+<li>Kuosmanen, T. (2005). Weak disposability in nonparametric production
+analysis with undesirable outputs. <em>American Journal of Agricultural
+Economics</em>, 87(4), 1077-1082. <a href="doi:10.1111/j.1467-8276.2005.00788.x" class="uri">doi:10.1111/j.1467-8276.2005.00788.x</a></li>
+<li>Murty, S., Russell, R. R., &amp; Levkoff, S. B. (2012). On modeling
+pollution-generating technologies. <em>Journal of Environmental
+Economics and Management</em>, 64(1), 117-135. <a href="doi:10.1016/j.jeem.2012.02.005" class="uri">doi:10.1016/j.jeem.2012.02.005</a></li>
+<li>Oh, D.-h. (2010). A global Malmquist-Luenberger productivity index.
+<em>Journal of Productivity Analysis</em>, 34(3), 183-197. <a href="doi:10.1007/s11123-010-0178-y" class="uri">doi:10.1007/s11123-010-0178-y</a></li>
+<li>Rødseth, K. L. (2025). On the development of a unified,
+nonparametric materials balance-based efficiency analysis model and its
+applications. <em>Journal of Productivity Analysis</em>, 64(3), 305-319.
+<a href="doi:10.1007/s11123-025-00768-0" class="uri">doi:10.1007/s11123-025-00768-0</a></li>
+</ul>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

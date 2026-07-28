@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>Productivity change and inference</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Productivity change and inference</h1>
+
+
+
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(pgt)</span></code></pre></div>
+<div id="productivity-change-with-a-bad-output" class="section level2">
+<h2>Productivity change with a bad output</h2>
+<p>The Malmquist-Luenberger index (Chung, Färe and Grosskopf 1997)
+measures productivity change when part of the output is undesirable, by
+scoring each unit on a directional distance function (Chambers, Chung
+and Färe 1996) that expands the good output and contracts the bad output
+together. The adjacent-period version can be infeasible across periods
+(Aparicio, Pastor and Zofío 2013); the global index of Oh (2010) pools
+every period into one reference technology, which removes the
+infeasibility and makes the index circular. <code>pgt_ml()</code>
+computes it under the pollution-generating technology and splits it into
+efficiency change and best-practice change, <span class="math inline">\(GML = EC \times BPC\)</span>, with <span class="math inline">\(GML &gt; 1\)</span> signalling growth.</p>
+<p>This estimator is experimental: the global Malmquist-Luenberger index
+under a materials-balance technology is not yet settled in the
+literature, and the default technologies do not re-impose the per-DMU
+materials-balance cap on the projected point.</p>
+<p>The <code>technology</code> argument selects the reference
+technology. <code>technology = &quot;wd&quot;</code> imposes weak disposability of
+the bad output in the Kuosmanen (2005) form; this is the technology
+under which Chung, Färe and Grosskopf (1997) and Oh (2010) define the
+index, so it is the faithful comparator. The default <code>&quot;wgd&quot;</code>
+and the <code>&quot;envelope&quot;</code> option treat the bad output as reducible
+to the peer emission envelope and are exploratory companions.</p>
+<div id="a-constructed-panel" class="section level3">
+<h3>A constructed panel</h3>
+<p>The panel below has a frontier that improves between the two periods:
+the same output is produced with 15 percent less emission.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">15</span></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>d1 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">id =</span> <span class="dv">1</span><span class="sc">:</span>n, <span class="at">y =</span> <span class="fu">runif</span>(n, <span class="dv">5</span>, <span class="dv">10</span>), <span class="at">x =</span> <span class="fu">runif</span>(n, <span class="dv">8</span>, <span class="dv">12</span>),</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>                 <span class="at">b =</span> <span class="fu">runif</span>(n, <span class="dv">2</span>, <span class="dv">6</span>))</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>d2 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">id =</span> <span class="dv">1</span><span class="sc">:</span>n, <span class="at">y =</span> d1<span class="sc">$</span>y <span class="sc">*</span> <span class="fl">1.03</span>, <span class="at">x =</span> d1<span class="sc">$</span>x, <span class="at">b =</span> d1<span class="sc">$</span>b <span class="sc">*</span> <span class="fl">0.85</span>)</span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>d <span class="ot">&lt;-</span> <span class="fu">rbind</span>(<span class="fu">cbind</span>(d1, <span class="at">period =</span> <span class="dv">1</span>), <span class="fu">cbind</span>(d2, <span class="at">period =</span> <span class="dv">2</span>))</span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>panel <span class="ot">&lt;-</span> <span class="fu">pgt_tech</span>(<span class="at">x =</span> d[, <span class="st">&quot;x&quot;</span>, <span class="at">drop =</span> <span class="cn">FALSE</span>], <span class="at">y =</span> d<span class="sc">$</span>y, <span class="at">b =</span> d<span class="sc">$</span>b,</span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>                  <span class="at">period =</span> d<span class="sc">$</span>period, <span class="at">id =</span> d<span class="sc">$</span>id)</span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>ml <span class="ot">&lt;-</span> <span class="fu">pgt_ml</span>(panel)</span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a><span class="fu">summary</span>(ml)</span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a><span class="co">#&gt; pgt global Malmquist-Luenberger index (technology = wgd, returns = vrs)</span></span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a><span class="co">#&gt; Distribution (GML &gt; 1 is productivity growth):</span></span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a><span class="co">#&gt;       0%   25%    50%    75%   100%</span></span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a><span class="co">#&gt; GML 1.03 1.033 1.0347 1.0499 1.1249</span></span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a><span class="co">#&gt; EC  1.00 1.000 1.0000 1.0000 1.0000</span></span>
+<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a><span class="co">#&gt; BPC 1.03 1.033 1.0347 1.0499 1.1249</span></span>
+<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a><span class="co">#&gt; Geometric mean by period transition:</span></span>
+<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a><span class="co">#&gt;  to  n   gml ec   bpc</span></span>
+<span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a><span class="co">#&gt;   2 15 1.049  1 1.049</span></span></code></pre></div>
+<p>The median index exceeds 1, and best-practice change carries it: the
+frontier moved out while each unit kept its position relative to the
+frontier, so efficiency change stays near 1.</p>
+</div>
+<div id="a-real-rice-panel" class="section level3">
+<h3>A real rice panel</h3>
+<p>The Philippine rice panel in the <code>frontier</code> package spans
+eight years. Treating fertiliser nitrogen as the pollutant potential
+gives a nitrogen-based productivity index.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">data</span>(<span class="st">&quot;riceProdPhil&quot;</span>, <span class="at">package =</span> <span class="st">&quot;frontier&quot;</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>r <span class="ot">&lt;-</span> riceProdPhil</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>uN <span class="ot">&lt;-</span> <span class="fl">0.46</span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>rice_panel <span class="ot">&lt;-</span> <span class="fu">pgt_tech</span>(</span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>  <span class="at">x =</span> <span class="fu">as.matrix</span>(r[, <span class="fu">c</span>(<span class="st">&quot;AREA&quot;</span>, <span class="st">&quot;LABOR&quot;</span>, <span class="st">&quot;NPK&quot;</span>, <span class="st">&quot;OTHER&quot;</span>)]),</span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>  <span class="at">y =</span> r<span class="sc">$</span>PROD,</span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>  <span class="at">b =</span> uN <span class="sc">*</span> r<span class="sc">$</span>NPK,</span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a>  <span class="at">u =</span> <span class="fu">c</span>(<span class="at">AREA =</span> <span class="dv">0</span>, <span class="at">LABOR =</span> <span class="dv">0</span>, <span class="at">NPK =</span> uN, <span class="at">OTHER =</span> <span class="dv">0</span>),</span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a>  <span class="at">v =</span> <span class="dv">0</span>,</span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a>  <span class="at">period =</span> r<span class="sc">$</span>YEARDUM,</span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a>  <span class="at">id =</span> <span class="fu">as.character</span>(r<span class="sc">$</span>FMERCODE)</span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a>)</span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a>rice_ml <span class="ot">&lt;-</span> <span class="fu">pgt_ml</span>(rice_panel)</span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a><span class="fu">summary</span>(rice_ml)</span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a><span class="co">#&gt; pgt global Malmquist-Luenberger index (technology = wgd, returns = vrs)</span></span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a><span class="co">#&gt; Distribution (GML &gt; 1 is productivity growth):</span></span>
+<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a><span class="co">#&gt;         0%    25%    50%    75%   100%</span></span>
+<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a><span class="co">#&gt; GML 0.5981 0.9082 1.0000 1.1291 1.7404</span></span>
+<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a><span class="co">#&gt; EC  0.6339 0.9410 1.0000 1.0802 1.5929</span></span>
+<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a><span class="co">#&gt; BPC 0.6907 0.9203 0.9997 1.0971 1.4926</span></span>
+<span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a><span class="co">#&gt; Geometric mean by period transition:</span></span>
+<span id="cb3-24"><a href="#cb3-24" tabindex="-1"></a><span class="co">#&gt;  to  n    gml     ec    bpc</span></span>
+<span id="cb3-25"><a href="#cb3-25" tabindex="-1"></a><span class="co">#&gt;   2 43 0.9809 1.0375 0.9455</span></span>
+<span id="cb3-26"><a href="#cb3-26" tabindex="-1"></a><span class="co">#&gt;   3 43 1.0464 1.0605 0.9866</span></span>
+<span id="cb3-27"><a href="#cb3-27" tabindex="-1"></a><span class="co">#&gt;   4 43 1.0046 0.9807 1.0244</span></span>
+<span id="cb3-28"><a href="#cb3-28" tabindex="-1"></a><span class="co">#&gt;   5 43 0.9322 0.9687 0.9623</span></span>
+<span id="cb3-29"><a href="#cb3-29" tabindex="-1"></a><span class="co">#&gt;   6 43 1.0069 0.9755 1.0322</span></span>
+<span id="cb3-30"><a href="#cb3-30" tabindex="-1"></a><span class="co">#&gt;   7 43 0.9027 0.9925 0.9095</span></span>
+<span id="cb3-31"><a href="#cb3-31" tabindex="-1"></a><span class="co">#&gt;   8 43 1.2128 1.0071 1.2043</span></span></code></pre></div>
+</div>
+</div>
+<div id="subsampling-inference" class="section level2">
+<h2>Subsampling inference</h2>
+<p>Efficiency scores are point estimates from a finite sample of DMUs.
+<code>boot_pgt()</code> gauges their sampling variability by re-solving
+each unit against random subsamples of the reference set (m out of n,
+without replacement), the resampling scheme with the firmest footing for
+boundary estimators (Politis and Romano 1994; Politis, Romano and Wolf
+1999; Kneip, Simar and Wilson 2008). <code>boot_pgt()</code> covers
+cross-sectional efficiency scores only; no inference is currently
+available for the <code>pgt_ml()</code> index. The example takes the
+first 60 plants of the synthetic <code>steeldemo</code> panel.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">data</span>(steeldemo)</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>steel60 <span class="ot">&lt;-</span> steeldemo[<span class="dv">1</span><span class="sc">:</span><span class="dv">60</span>, ]</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>tech <span class="ot">&lt;-</span> <span class="fu">pgt_tech</span>(</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>  <span class="at">x =</span> steel60[, <span class="fu">c</span>(<span class="st">&quot;coal_coke&quot;</span>, <span class="st">&quot;other_fuel&quot;</span>, <span class="st">&quot;raw_material&quot;</span>, <span class="st">&quot;flux&quot;</span>)],</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>  <span class="at">y =</span> steel60<span class="sc">$</span>production, <span class="at">b =</span> steel60<span class="sc">$</span>emissions, <span class="at">v =</span> <span class="fl">0.01467</span>,</span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>  <span class="at">group =</span> steel60<span class="sc">$</span>route, <span class="at">id =</span> steel60<span class="sc">$</span>plant</span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>)</span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>bt <span class="ot">&lt;-</span> <span class="fu">boot_pgt</span>(tech, <span class="at">model =</span> <span class="st">&quot;wgd&quot;</span>, <span class="at">B =</span> <span class="dv">40</span>, <span class="at">seed =</span> <span class="dv">1</span>)</span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="co">#&gt; Warning: 17 of 60 DMUs have infeasible LPs in more than half of their subsample</span></span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="co">#&gt; replicates; their intervals rest on few replicates (see per_dmu$n_ok).</span></span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="fu">head</span>(bt<span class="sc">$</span>per_dmu)</span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a><span class="co">#&gt;     id      group  estimate     lower     upper         se n_ok</span></span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a><span class="co">#&gt; 1 P001 Integrated 0.7202900 0.6521703 0.7202900 0.01888103   40</span></span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a><span class="co">#&gt; 2 P001 Integrated 0.7171565 0.6585343 0.7171565 0.01620572   40</span></span>
+<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a><span class="co">#&gt; 3 P001 Integrated 0.7081322 0.6434389 0.7081322 0.01730729   40</span></span>
+<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a><span class="co">#&gt; 4 P002 Integrated 0.9461050 0.9078969 0.9425286 0.01503927   19</span></span>
+<span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a><span class="co">#&gt; 5 P002 Integrated 0.8494481 0.7783673 0.8494481 0.02262132   34</span></span>
+<span id="cb4-18"><a href="#cb4-18" tabindex="-1"></a><span class="co">#&gt; 6 P002 Integrated 0.8856638 0.8046069 0.8856638 0.02859469   27</span></span></code></pre></div>
+<p>Each unit is evaluated against the subsample frontier alone; the unit
+itself is not appended to the subsample. Replicates in which its
+programme is infeasible are dropped and counted in
+<code>per_dmu$n_ok</code>, and the point estimate can lie above its own
+upper endpoint, because the interval targets the true score, which the
+estimate overestimates.</p>
+<p>The intervals follow the subsampling recipe: the subsample scores are
+recentred at the point estimate and rescaled by the relative convergence
+rate <span class="math inline">\((m/L)^\kappa\)</span>, so the interval
+extends downward from the estimate, matching the direction of the
+frontier bias (a smaller reference sample can only move the estimated
+frontier inward). The intervals remain heuristic: resampling theory for
+data envelopment analysis covers the radial and directional
+technologies, not the materials-balance programs here, so <span class="math inline">\(\kappa\)</span> borrows the DEA rate as an
+approximation. Before relying on the intervals, check that their width
+is stable in the subsample size (Simar and Wilson 2011).</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="fu">boot_pgt_sensitivity</span>(tech, <span class="at">model =</span> <span class="st">&quot;wgd&quot;</span>, <span class="at">B =</span> <span class="dv">25</span>,</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>                     <span class="at">m_grid =</span> <span class="fu">c</span>(<span class="dv">15</span>, <span class="dv">25</span>, <span class="dv">40</span>), <span class="at">seed =</span> <span class="dv">1</span>)</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="co">#&gt; Warning: 22 of 60 DMUs have infeasible LPs in more than half of their subsample</span></span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a><span class="co">#&gt; replicates; their intervals rest on few replicates (see per_dmu$n_ok).</span></span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a><span class="co">#&gt; Warning: 11 of 60 DMUs have infeasible LPs in more than half of their subsample</span></span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a><span class="co">#&gt; replicates; their intervals rest on few replicates (see per_dmu$n_ok).</span></span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a><span class="co">#&gt; Warning: 1 of 60 DMUs have infeasible LPs in more than half of their subsample</span></span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a><span class="co">#&gt; replicates; their intervals rest on few replicates (see per_dmu$n_ok).</span></span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a><span class="co">#&gt;    m median_width median_width_pos    mean_se</span></span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a><span class="co">#&gt; 1 15   0.07378358       0.07655731 0.02642923</span></span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a><span class="co">#&gt; 2 25   0.06319221       0.06398525 0.02588980</span></span>
+<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a><span class="co">#&gt; 3 40   0.04998538       0.05013635 0.01991171</span></span></code></pre></div>
+<p>A width that changes little across the grid supports the chosen
+subsample size; a strong trend means the size, not the data, is driving
+the interval.</p>
+<p>When the technology carries groups, <code>boot_pgt()</code> also
+reports intervals for the group mean scores. These are a descriptive
+stability band, not supported inference: the replicate statistic
+averages all group members against a common subsample frontier, so
+replicate variation reflects movement of the frontier only, and the
+per-DMU convergence rate is reused for the mean (Kneip, Simar and Wilson
+2015 give the theory for aggregates of efficiency scores).</p>
+<div id="coverage-under-a-known-data-generating-process" class="section level3">
+<h3>Coverage under a known data-generating process</h3>
+<p>The heuristic label invites the obvious question: how close to
+nominal do these intervals get when the truth is known? The package
+ships a Monte Carlo study (<code>inst/simulations/coverage.R</code>) for
+the envelope model under a data-generating process with a known linear
+frontier <span class="math inline">\(b_{\min}(y) = 2 + 0.5y\)</span> and
+exponential inefficiency, where the true score <span class="math inline">\(\theta = b_{\min}(y)/b\)</span> is the estimand.
+Two hundred replicates per sample size, <code>B = 100</code>, nominal
+level 95 per cent; the table reports the precomputed results shipped
+with the package.</p>
+<table>
+<colgroup>
+<col width="5%" />
+<col width="16%" />
+<col width="13%" />
+<col width="33%" />
+<col width="13%" />
+<col width="17%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="right">L</th>
+<th align="right">replicates</th>
+<th align="right">all DMUs</th>
+<th align="right">frontier (theta &gt; 0.9)</th>
+<th align="right">interior</th>
+<th align="right">group means</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">50</td>
+<td align="right">200</td>
+<td align="right">0.943</td>
+<td align="right">0.957</td>
+<td align="right">0.937</td>
+<td align="right">0.950</td>
+</tr>
+<tr class="even">
+<td align="right">100</td>
+<td align="right">200</td>
+<td align="right">0.970</td>
+<td align="right">0.980</td>
+<td align="right">0.966</td>
+<td align="right">0.978</td>
+</tr>
+</tbody>
+</table>
+<p>Empirical coverage sits near the nominal 95 per cent for both sample
+sizes, for frontier and interior units alike, and errs on the
+conservative side at the larger sample. One simulation under one
+data-generating process is evidence, not proof: the DEA rate remains
+borrowed for the materials-balance programmes, which is why the
+intervals keep their heuristic label.</p>
+</div>
+</div>
+<div id="references" class="section level2">
+<h2>References</h2>
+<p>Aparicio, J., Pastor, J. T., &amp; Zofío, J. L. (2013). On the
+inconsistency of the Malmquist-Luenberger index. <em>European Journal of
+Operational Research</em>, 229(3), 738-742. <a href="doi:10.1016/j.ejor.2013.03.031" class="uri">doi:10.1016/j.ejor.2013.03.031</a></p>
+<p>Chambers, R. G., Chung, Y., &amp; Färe, R. (1996). Benefit and
+distance functions. <em>Journal of Economic Theory</em>, 70(2), 407-419.
+<a href="doi:10.1006/jeth.1996.0096" class="uri">doi:10.1006/jeth.1996.0096</a></p>
+<p>Chung, Y. H., Färe, R., &amp; Grosskopf, S. (1997). Productivity and
+undesirable outputs: A directional distance function approach.
+<em>Journal of Environmental Management</em>, 51(3), 229-240. <a href="doi:10.1006/jema.1997.0146" class="uri">doi:10.1006/jema.1997.0146</a></p>
+<p>Kneip, A., Simar, L., &amp; Wilson, P. W. (2008). Asymptotics and
+consistent bootstraps for DEA estimators in nonparametric frontier
+models. <em>Econometric Theory</em>, 24(6), 1663-1697. <a href="doi:10.1017/S0266466608080651" class="uri">doi:10.1017/S0266466608080651</a></p>
+<p>Kneip, A., Simar, L., &amp; Wilson, P. W. (2015). When bias kills the
+variance: Central limit theorems for DEA and FDH efficiency scores.
+<em>Econometric Theory</em>, 31(2), 394-422. <a href="doi:10.1017/S0266466614000413" class="uri">doi:10.1017/S0266466614000413</a></p>
+<p>Kuosmanen, T. (2005). Weak disposability in nonparametric production
+analysis with undesirable outputs. <em>American Journal of Agricultural
+Economics</em>, 87(4), 1077-1082. <a href="doi:10.1111/j.1467-8276.2005.00788.x" class="uri">doi:10.1111/j.1467-8276.2005.00788.x</a></p>
+<p>Oh, D.-h. (2010). A global Malmquist-Luenberger productivity index.
+<em>Journal of Productivity Analysis</em>, 34(3), 183-197. <a href="doi:10.1007/s11123-010-0178-y" class="uri">doi:10.1007/s11123-010-0178-y</a></p>
+<p>Politis, D. N., &amp; Romano, J. P. (1994). Large sample confidence
+regions based on subsamples under minimal assumptions. <em>The Annals of
+Statistics</em>, 22(4), 2031-2050. <a href="doi:10.1214/aos/1176325770" class="uri">doi:10.1214/aos/1176325770</a></p>
+<p>Politis, D. N., Romano, J. P., &amp; Wolf, M. (1999).
+<em>Subsampling</em>. Springer, New York. <a href="doi:10.1007/978-1-4612-1554-7" class="uri">doi:10.1007/978-1-4612-1554-7</a></p>
+<p>Simar, L., &amp; Wilson, P. W. (2011). Inference by the m out of n
+bootstrap in nonparametric frontier models. <em>Journal of Productivity
+Analysis</em>, 36(1), 33-53. <a href="doi:10.1007/s11123-010-0200-4" class="uri">doi:10.1007/s11123-010-0200-4</a></p>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

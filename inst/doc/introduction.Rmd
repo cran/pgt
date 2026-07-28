@@ -1,0 +1,218 @@
+---
+title: "Introduction to pgt"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to pgt}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 6,
+                      fig.height = 4)
+```
+
+```{r setup}
+library(pgt)
+```
+
+## The materials-balance principle
+
+A pollution-generating technology turns material inputs into a good
+output and an unavoidable bad output. The pollutant content of the
+inputs has to end up somewhere: embodied in the product, removed by
+abatement, or emitted. `pgt` builds efficiency models on that accounting
+identity,
+$$u'x_l - v y_l \ge b_l,$$
+where $x_l$ are the material inputs of unit $l$, $u$ their pollutant
+flow coefficients (for example tonnes of CO2 potential per unit of
+input), $y_l$ the good output, $v$ the pollutant retained in the
+product, and $b_l$ the emissions. The gap $u'x_l - v y_l - b_l$ is the
+pollutant that leaves the process other than through the measured
+emission. A note on terminology: the mass balance is an identity when
+every exit is measured; the inequality form above allows for unmeasured
+abatement, and when the abatement output $a_l$ is observed the account
+closes as the equality $u'x_l - v y_l = b_l + a_l$. Following Rødseth
+(2025), the documentation calls both forms the materials-balance
+identity.
+
+The principle itself is old: Ayres and Kneese (1969) built the
+materials-balance view of production and externalities, Lauwers (2009)
+made the case for carrying it into frontier-based eco-efficiency
+models, and Dakpo, Jeanneaux and Latruffe (2016) survey how
+pollution-generating technologies have been modelled in nonparametric
+benchmarking since.
+
+Existing R packages handle undesirable outputs by transforming the data
+(the Seiford and Zhu 2002 translation in `deaR`) or by imposing weak
+disposability and directional distances (`nonparaeff`, `Benchmarking`).
+Neither approach enforces the materials balance as a constraint. `pgt`
+does, and puts the competing axiom systems behind one interface.
+
+## Building a technology
+
+The constructor bundles the data with the flow coefficients. The shipped
+`steeldemo` data is a synthetic panel of steel plants on two production
+routes, with emissions in CO2 units.
+
+```{r}
+data(steeldemo)
+tech <- pgt_tech(
+  x = steeldemo[, c("coal_coke", "other_fuel", "raw_material", "flux")],
+  y = steeldemo$production,
+  b = steeldemo$emissions,
+  v = 0.01467,
+  group = steeldemo$route,
+  id = steeldemo$plant
+)
+tech
+```
+
+The inputs already sit in pollutant-potential units, so the default
+$u = 1$ applies to each; `v = 0.01467` is the carbon retained per unit
+of crude steel (the synthetic generator's assumption; see
+`?steeldemo` for the derivation).
+
+## Auditing the identity before estimation
+
+The weak-G-disposability model gives every DMU a self-reference (its
+own observation as a feasible solution to its programme) only when its
+own materials balance holds. `mb_check()` reports the closure gap per
+DMU and flags the accounts where more pollutant leaves than enters.
+
+```{r}
+mb <- mb_check(tech)
+head(as.data.frame(mb))
+attr(mb, "n_violations")
+```
+
+An infeasible weak-G-disposability program always belongs to a DMU with
+a strictly negative gap, so this audit locates any estimation problem
+in advance. Such DMUs return `NA` scores and `pgt()` warns; all other
+DMUs score in $(0, 1]$.
+
+## Estimating environmental efficiency
+
+The weak-G-disposability model minimises the bad output subject to output
+and input feasibility, the peer emission envelope, and the DMU's own
+materials-balance cap (the programmes are stated in full in
+`vignette("models", "pgt")`). The score is $b^*_l / b_l$.
+
+```{r}
+fit <- pgt(tech, model = "wgd")
+summary(fit)
+```
+
+The envelope model frees the inputs and reduces the program to the
+convex lower envelope of the $(y, b)$ scatter. Its self-reference is
+always feasible.
+
+```{r}
+fit_env <- pgt(tech, model = "envelope")
+summary(fit_env)
+```
+
+## Shadow prices and abatement cost
+
+The output-constraint dual $\eta_l = \partial b^*/\partial y$ (returned
+as `dual_output`) measures the marginal emission content of the good
+output along the frontier. `mac_curve()` turns it into a marginal
+abatement cost curve: reducing the bad output by one unit costs
+$1 / \eta_l$ units of the good output, or $p / \eta_l$ at output price
+$p$. Read the curve with care about which margin is which: each DMU's
+plotted abatement is its distance to the frontier, $b_l - b^*_l$, which
+the model itself prices at zero output loss, while the `mac` value is
+the marginal cost of abating beyond the DMU's frontier point. The curve
+therefore ranks DMUs by the shadow price at their projection; the area
+under it is not a total-cost estimate.
+
+```{r, fig.alt = "Step curve of marginal abatement cost against cumulative abatement potential"}
+head(shadow_prices(fit))
+mac <- mac_curve(fit, price = 550)
+plot(mac)
+```
+
+## Decomposing across production routes
+
+With a technology group, `pgt_decompose()` splits environmental
+efficiency into a within-group and a technology-gap component. The
+envelope decomposition is an exact identity, Total $=$ WR $\times$ TGR,
+where WR is within-route reallocation and TGR the technology-gap ratio
+of the metafrontier tradition (Battese, Rao and O'Donnell 2004;
+O'Donnell, Rao and Battese 2008).
+
+```{r}
+dec <- pgt_decompose(tech, type = "envelope")
+summary(dec)
+```
+
+## A worked example on real data
+
+The `frontier` package ships a balanced panel of Philippine rice farms
+with a physical fertiliser input (`NPK`, kilograms of active ingredient)
+and a physical output (`PROD`, tonnes of paddy). Treating the nitrogen
+carried by the fertiliser as the pollutant potential gives a nitrogen
+materials balance. The nitrogen fraction below is illustrative
+(urea-equivalent, about 0.46 of the active ingredient).
+
+```{r, eval = requireNamespace("frontier", quietly = TRUE)}
+data("riceProdPhil", package = "frontier")
+d8 <- riceProdPhil[riceProdPhil$YEARDUM == 8, ]
+uN <- 0.46
+rice <- pgt_tech(
+  x = as.matrix(d8[, c("AREA", "LABOR", "NPK", "OTHER")]),
+  y = d8$PROD,
+  b = uN * d8$NPK,
+  u = c(AREA = 0, LABOR = 0, NPK = uN, OTHER = 0),
+  v = 0,
+  id = as.character(d8$FMERCODE)
+)
+rice_fit <- pgt(rice, model = "wgd")
+summary(rice_fit)
+```
+
+Here environmental efficiency is the scope to cut fertiliser nitrogen
+while holding rice output at its observed level. One caveat on this
+construction: because the bad output is defined as the full nitrogen
+potential of a single input ($b = u_N \cdot$ `NPK`), every farm's
+account closes with equality by construction, the materials-balance cap
+can never bind, and `mb_check()` passes trivially; the example
+illustrates the workflow, not the audit.
+
+The other vignettes state the estimating programmes in full
+(`vignette("models", "pgt")`), reproduce the published-result
+replications (`vignette("replication", "pgt")`), compare the axiom
+systems (`vignette("comparing-axioms", "pgt")`), demonstrate
+multi-pollutant technologies and heterogeneous coefficients
+(`vignette("multiple-pollutants", "pgt")`) and cover productivity
+measurement with inference (`vignette("productivity", "pgt")`).
+
+## References
+
+- Ayres, R. U., & Kneese, A. V. (1969). Production, consumption, and
+  externalities. *American Economic Review*, 59(3), 282-297.
+- Battese, G. E., Rao, D. S. P., & O'Donnell, C. J. (2004). A
+  metafrontier production function for estimation of technical
+  efficiencies and technology gaps for firms operating under different
+  technologies. *Journal of Productivity Analysis*, 21(1), 91-103.
+  doi:10.1023/B:PROD.0000012454.06094.29
+- Dakpo, K. H., Jeanneaux, P., & Latruffe, L. (2016). Modelling
+  pollution-generating technologies in performance benchmarking: Recent
+  developments, limits and future prospects in the nonparametric
+  framework. *European Journal of Operational Research*, 250(2),
+  347-359. doi:10.1016/j.ejor.2015.07.024
+- Lauwers, L. (2009). Justifying the incorporation of the materials
+  balance principle into frontier-based eco-efficiency models.
+  *Ecological Economics*, 68(6), 1605-1614.
+  doi:10.1016/j.ecolecon.2008.08.022
+- O'Donnell, C. J., Rao, D. S. P., & Battese, G. E. (2008).
+  Metafrontier frameworks for the study of firm-level efficiencies and
+  technology ratios. *Empirical Economics*, 34(2), 231-255.
+  doi:10.1007/s00181-007-0119-4
+- Rødseth, K. L. (2025). On the development of a unified, nonparametric
+  materials balance-based efficiency analysis model and its
+  applications. *Journal of Productivity Analysis*, 64(3), 305-319.
+  doi:10.1007/s11123-025-00768-0
+- Seiford, L. M., & Zhu, J. (2002). Modeling undesirable factors in
+  efficiency evaluation. *European Journal of Operational Research*,
+  142(1), 16-20. doi:10.1016/S0377-2217(01)00293-4

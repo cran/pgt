@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>Introduction to pgt</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Introduction to pgt</h1>
+
+
+
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(pgt)</span></code></pre></div>
+<div id="the-materials-balance-principle" class="section level2">
+<h2>The materials-balance principle</h2>
+<p>A pollution-generating technology turns material inputs into a good
+output and an unavoidable bad output. The pollutant content of the
+inputs has to end up somewhere: embodied in the product, removed by
+abatement, or emitted. <code>pgt</code> builds efficiency models on that
+accounting identity, <span class="math display">\[u&#39;x_l - v y_l \ge
+b_l,\]</span> where <span class="math inline">\(x_l\)</span> are the
+material inputs of unit <span class="math inline">\(l\)</span>, <span class="math inline">\(u\)</span> their pollutant flow coefficients (for
+example tonnes of CO2 potential per unit of input), <span class="math inline">\(y_l\)</span> the good output, <span class="math inline">\(v\)</span> the pollutant retained in the product,
+and <span class="math inline">\(b_l\)</span> the emissions. The gap
+<span class="math inline">\(u&#39;x_l - v y_l - b_l\)</span> is the
+pollutant that leaves the process other than through the measured
+emission. A note on terminology: the mass balance is an identity when
+every exit is measured; the inequality form above allows for unmeasured
+abatement, and when the abatement output <span class="math inline">\(a_l\)</span> is observed the account closes as the
+equality <span class="math inline">\(u&#39;x_l - v y_l = b_l +
+a_l\)</span>. Following Rødseth (2025), the documentation calls both
+forms the materials-balance identity.</p>
+<p>The principle itself is old: Ayres and Kneese (1969) built the
+materials-balance view of production and externalities, Lauwers (2009)
+made the case for carrying it into frontier-based eco-efficiency models,
+and Dakpo, Jeanneaux and Latruffe (2016) survey how pollution-generating
+technologies have been modelled in nonparametric benchmarking since.</p>
+<p>Existing R packages handle undesirable outputs by transforming the
+data (the Seiford and Zhu 2002 translation in <code>deaR</code>) or by
+imposing weak disposability and directional distances
+(<code>nonparaeff</code>, <code>Benchmarking</code>). Neither approach
+enforces the materials balance as a constraint. <code>pgt</code> does,
+and puts the competing axiom systems behind one interface.</p>
+</div>
+<div id="building-a-technology" class="section level2">
+<h2>Building a technology</h2>
+<p>The constructor bundles the data with the flow coefficients. The
+shipped <code>steeldemo</code> data is a synthetic panel of steel plants
+on two production routes, with emissions in CO2 units.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">data</span>(steeldemo)</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>tech <span class="ot">&lt;-</span> <span class="fu">pgt_tech</span>(</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>  <span class="at">x =</span> steeldemo[, <span class="fu">c</span>(<span class="st">&quot;coal_coke&quot;</span>, <span class="st">&quot;other_fuel&quot;</span>, <span class="st">&quot;raw_material&quot;</span>, <span class="st">&quot;flux&quot;</span>)],</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>  <span class="at">y =</span> steeldemo<span class="sc">$</span>production,</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>  <span class="at">b =</span> steeldemo<span class="sc">$</span>emissions,</span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>  <span class="at">v =</span> <span class="fl">0.01467</span>,</span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>  <span class="at">group =</span> steeldemo<span class="sc">$</span>route,</span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>  <span class="at">id =</span> steeldemo<span class="sc">$</span>plant</span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>)</span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>tech</span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a><span class="co">#&gt; Pollution-generating technology</span></span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a><span class="co">#&gt;   DMUs: 180   inputs: 4   good outputs: 1   bad outputs: 1</span></span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a><span class="co">#&gt;   inputs: coal_coke, other_fuel, raw_material, flux</span></span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a><span class="co">#&gt;   material flow coefficients: u = [1, 1, 1, 1], v = 0.01467</span></span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a><span class="co">#&gt;   groups: Integrated (105), Minimill (75)</span></span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a><span class="co">#&gt;   materials balance: satisfied for all DMUs</span></span></code></pre></div>
+<p>The inputs already sit in pollutant-potential units, so the default
+<span class="math inline">\(u = 1\)</span> applies to each;
+<code>v = 0.01467</code> is the carbon retained per unit of crude steel
+(the synthetic generator’s assumption; see <code>?steeldemo</code> for
+the derivation).</p>
+</div>
+<div id="auditing-the-identity-before-estimation" class="section level2">
+<h2>Auditing the identity before estimation</h2>
+<p>The weak-G-disposability model gives every DMU a self-reference (its
+own observation as a feasible solution to its programme) only when its
+own materials balance holds. <code>mb_check()</code> reports the closure
+gap per DMU and flags the accounts where more pollutant leaves than
+enters.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>mb <span class="ot">&lt;-</span> <span class="fu">mb_check</span>(tech)</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">as.data.frame</span>(mb))</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="co">#&gt;     id      group potential retained       b       gap    rel_gap violated</span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co">#&gt; 1 P001 Integrated   4856127 29930.40 4431848 394348.99 0.08120648    FALSE</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="co">#&gt; 2 P001 Integrated   4933440 32542.19 4810748  90149.86 0.01827322    FALSE</span></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="co">#&gt; 3 P001 Integrated   4920386 30214.73 4547577 342594.99 0.06962766    FALSE</span></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="co">#&gt; 4 P002 Integrated   3846987 29343.62 3452634 365009.38 0.09488189    FALSE</span></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="co">#&gt; 5 P002 Integrated   3470487 25188.10 3206835 238464.15 0.06871201    FALSE</span></span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="co">#&gt; 6 P002 Integrated   3362598 25968.38 3162682 173948.43 0.05173036    FALSE</span></span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="fu">attr</span>(mb, <span class="st">&quot;n_violations&quot;</span>)</span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="co">#&gt; [1] 0</span></span></code></pre></div>
+<p>An infeasible weak-G-disposability program always belongs to a DMU
+with a strictly negative gap, so this audit locates any estimation
+problem in advance. Such DMUs return <code>NA</code> scores and
+<code>pgt()</code> warns; all other DMUs score in <span class="math inline">\((0, 1]\)</span>.</p>
+</div>
+<div id="estimating-environmental-efficiency" class="section level2">
+<h2>Estimating environmental efficiency</h2>
+<p>The weak-G-disposability model minimises the bad output subject to
+output and input feasibility, the peer emission envelope, and the DMU’s
+own materials-balance cap (the programmes are stated in full in
+<code>vignette(&quot;models&quot;, &quot;pgt&quot;)</code>). The score is <span class="math inline">\(b^*_l / b_l\)</span>.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">pgt</span>(tech, <span class="at">model =</span> <span class="st">&quot;wgd&quot;</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="fu">summary</span>(fit)</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co">#&gt; pgt fit: model = wgd, returns = vrs, peers = all</span></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="co">#&gt;   pollutant: b</span></span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="co">#&gt;   DMUs: 180   failed LPs: 0</span></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="co">#&gt; Efficiency (b*/b):</span></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="co">#&gt;     0%    25%    50%    75%   100% </span></span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="co">#&gt; 0.1269 0.1639 0.4850 0.7122 1.0000 </span></span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="co">#&gt; By group:</span></span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a><span class="co">#&gt;       group   n n_na median   mean median_dual_output</span></span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a><span class="co">#&gt;  Integrated 105    0 0.1784 0.3110             0.4733</span></span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a><span class="co">#&gt;    Minimill  75    0 0.6273 0.7024             0.3018</span></span></code></pre></div>
+<p>The envelope model frees the inputs and reduces the program to the
+convex lower envelope of the <span class="math inline">\((y, b)\)</span>
+scatter. Its self-reference is always feasible.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>fit_env <span class="ot">&lt;-</span> <span class="fu">pgt</span>(tech, <span class="at">model =</span> <span class="st">&quot;envelope&quot;</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="fu">summary</span>(fit_env)</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="co">#&gt; pgt fit: model = envelope, returns = vrs, peers = all</span></span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a><span class="co">#&gt;   pollutant: b</span></span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a><span class="co">#&gt;   DMUs: 180   failed LPs: 0</span></span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a><span class="co">#&gt; Efficiency (b*/b):</span></span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a><span class="co">#&gt;     0%    25%    50%    75%   100% </span></span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a><span class="co">#&gt; 0.1269 0.1639 0.4850 0.7122 1.0000 </span></span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a><span class="co">#&gt; By group:</span></span>
+<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a><span class="co">#&gt;       group   n n_na median   mean median_dual_output</span></span>
+<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a><span class="co">#&gt;  Integrated 105    0 0.1784 0.3086             0.4733</span></span>
+<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a><span class="co">#&gt;    Minimill  75    0 0.6273 0.6871             0.3018</span></span></code></pre></div>
+</div>
+<div id="shadow-prices-and-abatement-cost" class="section level2">
+<h2>Shadow prices and abatement cost</h2>
+<p>The output-constraint dual <span class="math inline">\(\eta_l =
+\partial b^*/\partial y\)</span> (returned as <code>dual_output</code>)
+measures the marginal emission content of the good output along the
+frontier. <code>mac_curve()</code> turns it into a marginal abatement
+cost curve: reducing the bad output by one unit costs <span class="math inline">\(1 / \eta_l\)</span> units of the good output, or
+<span class="math inline">\(p / \eta_l\)</span> at output price <span class="math inline">\(p\)</span>. Read the curve with care about which
+margin is which: each DMU’s plotted abatement is its distance to the
+frontier, <span class="math inline">\(b_l - b^*_l\)</span>, which the
+model itself prices at zero output loss, while the <code>mac</code>
+value is the marginal cost of abating beyond the DMU’s frontier point.
+The curve therefore ranks DMUs by the shadow price at their projection;
+the area under it is not a total-cost estimate.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">shadow_prices</span>(fit))</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="co">#&gt;     id      group       b   b_star dual_output mb_headroom</span></span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="co">#&gt; 1 P001 Integrated 4431848 590172.6   0.3017576     4236024</span></span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a><span class="co">#&gt; 2 P001 Integrated 4810748 643896.2   0.3017576     4257002</span></span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="co">#&gt; 3 P001 Integrated 4547577 596021.2   0.3017576     4294150</span></span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a><span class="co">#&gt; 4 P002 Integrated 3452634 578102.7   0.3017576     3239540</span></span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a><span class="co">#&gt; 5 P002 Integrated 3206835 492624.8   0.3017576     2952674</span></span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a><span class="co">#&gt; 6 P002 Integrated 3162682 508675.1   0.3017576     2827955</span></span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>mac <span class="ot">&lt;-</span> <span class="fu">mac_curve</span>(fit, <span class="at">price =</span> <span class="dv">550</span>)</span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a><span class="fu">plot</span>(mac)</span></code></pre></div>
+<p><img role="img" aria-label="Step curve of marginal abatement cost against cumulative abatement potential" src="data:image/png;base64,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" alt="Step curve of marginal abatement cost against cumulative abatement potential" /></p>
+</div>
+<div id="decomposing-across-production-routes" class="section level2">
+<h2>Decomposing across production routes</h2>
+<p>With a technology group, <code>pgt_decompose()</code> splits
+environmental efficiency into a within-group and a technology-gap
+component. The envelope decomposition is an exact identity, Total <span class="math inline">\(=\)</span> WR <span class="math inline">\(\times\)</span> TGR, where WR is within-route
+reallocation and TGR the technology-gap ratio of the metafrontier
+tradition (Battese, Rao and O’Donnell 2004; O’Donnell, Rao and Battese
+2008).</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>dec <span class="ot">&lt;-</span> <span class="fu">pgt_decompose</span>(tech, <span class="at">type =</span> <span class="st">&quot;envelope&quot;</span>)</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="fu">summary</span>(dec)</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="co">#&gt; pgt decomposition: type = envelope, returns = vrs, DMUs = 180</span></span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="co">#&gt;   components: WR x TGR (product = total)</span></span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a><span class="co">#&gt; Group medians (components, total, attribution shares):</span></span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a><span class="co">#&gt;       group   n n_na    WR  TGR total share_WR share_TGR</span></span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a><span class="co">#&gt;  Integrated 105    0 0.804 0.21 0.178    0.285     0.715</span></span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a><span class="co">#&gt;    Minimill  75    0 0.627 1.00 0.627    1.000     0.000</span></span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a><span class="co">#&gt; (share_* are medians of DMU-level shares; they need not sum to 1.</span></span>
+<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a><span class="co">#&gt;  n_na counts DMUs with any NA component.)</span></span></code></pre></div>
+</div>
+<div id="a-worked-example-on-real-data" class="section level2">
+<h2>A worked example on real data</h2>
+<p>The <code>frontier</code> package ships a balanced panel of
+Philippine rice farms with a physical fertiliser input
+(<code>NPK</code>, kilograms of active ingredient) and a physical output
+(<code>PROD</code>, tonnes of paddy). Treating the nitrogen carried by
+the fertiliser as the pollutant potential gives a nitrogen materials
+balance. The nitrogen fraction below is illustrative (urea-equivalent,
+about 0.46 of the active ingredient).</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="fu">data</span>(<span class="st">&quot;riceProdPhil&quot;</span>, <span class="at">package =</span> <span class="st">&quot;frontier&quot;</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>d8 <span class="ot">&lt;-</span> riceProdPhil[riceProdPhil<span class="sc">$</span>YEARDUM <span class="sc">==</span> <span class="dv">8</span>, ]</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>uN <span class="ot">&lt;-</span> <span class="fl">0.46</span></span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>rice <span class="ot">&lt;-</span> <span class="fu">pgt_tech</span>(</span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>  <span class="at">x =</span> <span class="fu">as.matrix</span>(d8[, <span class="fu">c</span>(<span class="st">&quot;AREA&quot;</span>, <span class="st">&quot;LABOR&quot;</span>, <span class="st">&quot;NPK&quot;</span>, <span class="st">&quot;OTHER&quot;</span>)]),</span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a>  <span class="at">y =</span> d8<span class="sc">$</span>PROD,</span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a>  <span class="at">b =</span> uN <span class="sc">*</span> d8<span class="sc">$</span>NPK,</span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a>  <span class="at">u =</span> <span class="fu">c</span>(<span class="at">AREA =</span> <span class="dv">0</span>, <span class="at">LABOR =</span> <span class="dv">0</span>, <span class="at">NPK =</span> uN, <span class="at">OTHER =</span> <span class="dv">0</span>),</span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a>  <span class="at">v =</span> <span class="dv">0</span>,</span>
+<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a>  <span class="at">id =</span> <span class="fu">as.character</span>(d8<span class="sc">$</span>FMERCODE)</span>
+<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a>)</span>
+<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a>rice_fit <span class="ot">&lt;-</span> <span class="fu">pgt</span>(rice, <span class="at">model =</span> <span class="st">&quot;wgd&quot;</span>)</span>
+<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a><span class="fu">summary</span>(rice_fit)</span>
+<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a><span class="co">#&gt; pgt fit: model = wgd, returns = vrs, peers = all</span></span>
+<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a><span class="co">#&gt;   pollutant: b</span></span>
+<span id="cb8-16"><a href="#cb8-16" tabindex="-1"></a><span class="co">#&gt;   DMUs: 43   failed LPs: 0</span></span>
+<span id="cb8-17"><a href="#cb8-17" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb8-18"><a href="#cb8-18" tabindex="-1"></a><span class="co">#&gt; Efficiency (b*/b):</span></span>
+<span id="cb8-19"><a href="#cb8-19" tabindex="-1"></a><span class="co">#&gt;     0%    25%    50%    75%   100% </span></span>
+<span id="cb8-20"><a href="#cb8-20" tabindex="-1"></a><span class="co">#&gt; 0.1341 0.4102 0.5939 1.0000 1.0000</span></span></code></pre></div>
+<p>Here environmental efficiency is the scope to cut fertiliser nitrogen
+while holding rice output at its observed level. One caveat on this
+construction: because the bad output is defined as the full nitrogen
+potential of a single input (<span class="math inline">\(b = u_N
+\cdot\)</span> <code>NPK</code>), every farm’s account closes with
+equality by construction, the materials-balance cap can never bind, and
+<code>mb_check()</code> passes trivially; the example illustrates the
+workflow, not the audit.</p>
+<p>The other vignettes state the estimating programmes in full
+(<code>vignette(&quot;models&quot;, &quot;pgt&quot;)</code>), reproduce the published-result
+replications (<code>vignette(&quot;replication&quot;, &quot;pgt&quot;)</code>), compare the
+axiom systems (<code>vignette(&quot;comparing-axioms&quot;, &quot;pgt&quot;)</code>),
+demonstrate multi-pollutant technologies and heterogeneous coefficients
+(<code>vignette(&quot;multiple-pollutants&quot;, &quot;pgt&quot;)</code>) and cover
+productivity measurement with inference
+(<code>vignette(&quot;productivity&quot;, &quot;pgt&quot;)</code>).</p>
+</div>
+<div id="references" class="section level2">
+<h2>References</h2>
+<ul>
+<li>Ayres, R. U., &amp; Kneese, A. V. (1969). Production, consumption,
+and externalities. <em>American Economic Review</em>, 59(3),
+282-297.</li>
+<li>Battese, G. E., Rao, D. S. P., &amp; O’Donnell, C. J. (2004). A
+metafrontier production function for estimation of technical
+efficiencies and technology gaps for firms operating under different
+technologies. <em>Journal of Productivity Analysis</em>, 21(1), 91-103.
+<a href="doi:10.1023/B:PROD.0000012454.06094.29" class="uri">doi:10.1023/B:PROD.0000012454.06094.29</a></li>
+<li>Dakpo, K. H., Jeanneaux, P., &amp; Latruffe, L. (2016). Modelling
+pollution-generating technologies in performance benchmarking: Recent
+developments, limits and future prospects in the nonparametric
+framework. <em>European Journal of Operational Research</em>, 250(2),
+347-359. <a href="doi:10.1016/j.ejor.2015.07.024" class="uri">doi:10.1016/j.ejor.2015.07.024</a></li>
+<li>Lauwers, L. (2009). Justifying the incorporation of the materials
+balance principle into frontier-based eco-efficiency models.
+<em>Ecological Economics</em>, 68(6), 1605-1614. <a href="doi:10.1016/j.ecolecon.2008.08.022" class="uri">doi:10.1016/j.ecolecon.2008.08.022</a></li>
+<li>O’Donnell, C. J., Rao, D. S. P., &amp; Battese, G. E. (2008).
+Metafrontier frameworks for the study of firm-level efficiencies and
+technology ratios. <em>Empirical Economics</em>, 34(2), 231-255. <a href="doi:10.1007/s00181-007-0119-4" class="uri">doi:10.1007/s00181-007-0119-4</a></li>
+<li>Rødseth, K. L. (2025). On the development of a unified,
+nonparametric materials balance-based efficiency analysis model and its
+applications. <em>Journal of Productivity Analysis</em>, 64(3), 305-319.
+<a href="doi:10.1007/s11123-025-00768-0" class="uri">doi:10.1007/s11123-025-00768-0</a></li>
+<li>Seiford, L. M., &amp; Zhu, J. (2002). Modeling undesirable factors
+in efficiency evaluation. <em>European Journal of Operational
+Research</em>, 142(1), 16-20. <a href="doi:10.1016/S0377-2217(01)00293-4" class="uri">doi:10.1016/S0377-2217(01)00293-4</a></li>
+</ul>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
