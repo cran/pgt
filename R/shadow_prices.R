@@ -1,34 +1,44 @@
 #' Extract shadow values from a pgt fit
 #'
 #' Returns the informative constraint diagnostics of the per-DMU linear
-#' programs. \code{dual_output} is the shadow value of the output
-#' constraint, \eqn{\partial b^* / \partial y \ge 0}: the marginal
-#' bad-output content of the good output along the frontier (for CO2,
-#' the marginal emission intensity in tonnes of CO2 per tonne of
-#' output). \code{mb_headroom} (weak-G-disposability model only) is the
-#' slack \eqn{u'x_l - v y_l - b^*_l} between the projection and the
+#' programs. \code{dual_output} (one column per intended output when
+#' several are present) is the shadow value of the output constraint:
+#' the marginal bad-output content of the good output along the
+#' frontier (for CO2, the marginal emission intensity in tonnes of CO2
+#' per tonne of output). For \code{model = "wgd"} the reported dual is
+#' the total derivative
+#' \eqn{\partial b^*/\partial y_m = \mu_m - v_m}, which can be negative
+#' when the retained-content coefficient \eqn{v} is large (producing
+#' more output binds more pollutant into the product); for
+#' \code{"wgd_input_fixed"} and \code{"envelope"} the dual is
+#' non-negative. \code{mb_headroom} (\code{"wgd_input_fixed"} only) is the
+#' slack \eqn{u'x_l - v'y_l - b^*_l} between the projection and the
 #' DMU's materials-balance ceiling.
 #'
 #' The dual of the peer emission envelope
-#' \eqn{\sum_l \lambda_l b_l \le b} is not reported: in this reduced
-#' form it equals \eqn{-1} whenever the LP solves (dual feasibility on
-#' the emission variable, with the materials-balance row slack at any
-#' optimum), so it carries no cross-DMU information. In the boundary
-#' case \eqn{b^* = u'x_l - v y_l} exactly, the split of this dual
-#' between the envelope and cap rows is basis-dependent. A
-#' materials-balance cap that would bind manifests as an infeasible LP,
-#' not as a capped projection.
+#' \eqn{\sum_l \lambda_l b_l \le b} in the \code{"wgd_input_fixed"}
+#' programme is not reported: it equals \eqn{-1} whenever the LP solves
+#' (dual feasibility on the emission variable, with the
+#' materials-balance row slack at any optimum), so it carries no
+#' cross-DMU information. In the boundary case
+#' \eqn{b^* = u'x_l - v'y_l} exactly, the split of this dual between
+#' the envelope and cap rows is basis-dependent. A materials-balance
+#' cap that would bind manifests as an infeasible LP, not as a capped
+#' projection.
 #'
 #' Values are reported in the units of the linear program (quantities,
 #' not money). To monetise the output dual, combine it with an output
 #' price via [mac_curve()].
 #'
-#' @param fit A [pgt()] fit with \code{model = "wgd"} or
-#'   \code{"envelope"}, the models that report output duals.
+#' @param fit A [pgt()] fit with \code{model = "wgd"},
+#'   \code{"wgd_input_fixed"} or \code{"envelope"}, the models that report
+#'   output duals.
 #'
 #' @return A data frame with one row per DMU: \code{id}, \code{group}
-#'   (if present), \code{b}, \code{b_star}, \code{dual_output} and
-#'   \code{mb_headroom} (\code{NA} for the envelope model).
+#'   (if present), \code{b}, \code{b_star}, the output-dual columns
+#'   and \code{mb_headroom} where the fit reports it
+#'   (\code{"wgd_input_fixed"}; the column is \code{NA} for
+#'   \code{"envelope"} and absent for \code{"wgd"}).
 #'
 #' @references
 #' Fare, R., Grosskopf, S., Lovell, C. A. K., & Yaisawarng, S. (1993).
@@ -57,13 +67,14 @@
 #' @export
 shadow_prices <- function(fit) {
   stopifnot(inherits(fit, "pgt"))
-  if (!fit$model %in% c("wgd", "envelope")) {
+  if (!fit$model %in% c("wgd", "wgd_input_fixed", "envelope")) {
     stop("shadow_prices() requires a fit with output duals ",
-         "(model = \"wgd\" or \"envelope\"); got model = \"",
-         fit$model, "\".", call. = FALSE)
+         "(model = \"wgd\", \"wgd_input_fixed\" or \"envelope\"); got ",
+         "model = \"", fit$model, "\".", call. = FALSE)
   }
-  keep <- intersect(c("id", "group", "b", "b_star",
-                      "dual_output", "mb_headroom"),
+  keep <- intersect(c("id", "group", "b", "b_star", "dual_output",
+                      grep("^dual_", names(fit$results), value = TRUE),
+                      "mb_headroom"),
                     names(fit$results))
   fit$results[keep]
 }
@@ -89,11 +100,14 @@ shadow_prices <- function(fit) {
 #' the frontier point. The area under the curve is consequently not a
 #' total-cost estimate.
 #'
-#' DMUs with \eqn{\eta_l = 0} are excluded: a zero output dual arises
+#' DMUs with \eqn{\eta_l \le 0} are excluded. A zero output dual arises
 #' when the output constraint is slack, i.e. the DMU projects onto the
 #' flat segment of the \eqn{(y, b)} frontier, where abatement via
-#' output contraction has locally infinite marginal cost. Only
-#' exact-zero duals are excluded. Unsolved LPs are excluded as well.
+#' output contraction has locally infinite marginal cost. A negative
+#' dual (possible under \code{model = "wgd"}, whose dual nets out the
+#' retained content \eqn{v}) means output contraction increases
+#' emissions at the margin, so it admits no abatement-cost reading
+#' either. Unsolved LPs are excluded as well.
 #' The number of excluded DMUs and the summed abatement potential of
 #' the solved-but-excluded ones (which is NOT part of the curve) are
 #' attached as attributes \code{"n_excluded"} and
@@ -105,8 +119,10 @@ shadow_prices <- function(fit) {
 #' is one point of an interval and can differ across solver versions or
 #' platforms. Frontier-interior projections have unique duals.
 #'
-#' @param fit A [pgt()] fit with \code{model = "wgd"} or
-#'   \code{"envelope"}, the models that report output duals.
+#' @param fit A [pgt()] fit with \code{model = "wgd"},
+#'   \code{"wgd_input_fixed"} or \code{"envelope"}, the models that report
+#'   output duals. The fit must have a single intended output; with
+#'   several, the per-output duals are in [shadow_prices()].
 #' @param price Optional scalar price of the good output. If supplied,
 #'   \code{mac} is in money per unit of bad output.
 #'
@@ -142,10 +158,15 @@ shadow_prices <- function(fit) {
 #' @export
 mac_curve <- function(fit, price = NULL) {
   stopifnot(inherits(fit, "pgt"))
-  if (!fit$model %in% c("wgd", "envelope")) {
+  if (!fit$model %in% c("wgd", "wgd_input_fixed", "envelope")) {
     stop("mac_curve() requires a fit with output duals ",
-         "(model = \"wgd\" or \"envelope\"); got model = \"",
-         fit$model, "\".", call. = FALSE)
+         "(model = \"wgd\", \"wgd_input_fixed\" or \"envelope\"); got ",
+         "model = \"", fit$model, "\".", call. = FALSE)
+  }
+  if (is.null(fit$results$dual_output)) {
+    stop("mac_curve() is defined for a single intended output; this ",
+         "fit has several (per-output duals are in shadow_prices()).",
+         call. = FALSE)
   }
   if (!is.null(price)) {
     stopifnot(is.numeric(price), length(price) == 1L, price > 0)
@@ -206,16 +227,22 @@ print.pgt_mac <- function(x, ...) {
 }
 
 #' @export
-plot.pgt_mac <- function(x, ...) {
+plot.pgt_mac <- function(x, xlab = NULL, ylab = NULL, ...) {
   if (nrow(x) == 0) {
     stop("empty MAC curve: no DMUs with a positive output dual.",
          call. = FALSE)
   }
+  # generic axis labels by default; pass xlab/ylab to state the
+  # pollutant's own units
+  if (is.null(xlab)) {
+    xlab <- "Cumulative abatement potential (units of b)"
+  }
+  if (is.null(ylab)) {
+    ylab <- if (is.null(attr(x, "price")))
+      "Marginal abatement cost (units of y per b)"
+    else "Marginal abatement cost (money per unit of b)"
+  }
   graphics::plot(x$cum_abatement, x$mac, type = "s",
-                 xlab = "Cumulative abatement potential (units of b)",
-                 ylab = if (is.null(attr(x, "price")))
-                   "Marginal abatement cost (units of y per b)"
-                 else "Marginal abatement cost (money per unit of b)",
-                 ...)
+                 xlab = xlab, ylab = ylab, ...)
   invisible(x)
 }

@@ -1,3 +1,140 @@
+# pgt 0.6.1
+
+Documentation scoping and validation hardening after a full
+paper-code audit; no estimator changes.
+
+* Breaking for code reading the attribute: `mb_check()`'s count of
+  accounts with a strictly negative closure gap is renamed from
+  `n_exact` to `n_negative` — the old name read as a count of exactly
+  closing accounts, the opposite of what it counts. The
+  tolerance-flagged count `n_violations` is unchanged.
+* `?uscoal` documents the SO2 measurement provenance (eGRID values
+  are stack measurements only for CAMD-reporting units, and
+  emission-factor estimates built from EIA heat input elsewhere, with
+  a CHP plant's SO2 allocated to electricity) and the total-fuel
+  basis of `coal`, which at combined-heat-and-power plants tilts
+  accounts toward looser closure.
+* `pgt()` documents the directional model's open-account warning
+  threshold (relative closure gap above `1e-6`), `mb_cost`'s status 2
+  without a solver call for units with no pollutant-bearing inputs,
+  and that `"wd"` reports no output duals; the documented
+  `boot_pgt()` default `m` gains its `max(2, .)` floor.
+* A new test pins the `wgd` convention for the implied uncontrolled
+  emission on deliberately open accounts: `z_star` is the peer mix of
+  accounting caps `sum lambda (u'x - v'y)`, which equals
+  `sum lambda (b + a)` only when the peers' accounts close.
+* README and the models vignette carry the same scoped validation
+  wording as the manuscript.
+
+# pgt 0.6.0
+
+Faithful weak-G-disposability, several intended outputs, and the
+five-component decomposition of Rodseth (2025), from a close reading of
+the published paper.
+
+## The wgd model is redefined (breaking)
+
+* `pgt(model = "wgd")` now implements Rodseth (2025) Eq. 6/7 as
+  printed: only the intended outputs are held at the evaluated unit's
+  levels; inputs are decision variables. The reduced form minimises
+  `sum lambda (b_l + v_i'y_l) - v_i'y_i` over output-constrained peer
+  mixes. The programme is always self-feasible, scores lie in (0, 1]
+  on any data, and materials-balance violations no longer affect it
+  (they remain a data audit in `mb_check()`). When an abatement output
+  is observed the fit reports the projection's implied uncontrolled
+  emission `z_star` and abatement `a_star`, the quantities of the
+  paper's Table 2, which the test suite now replicates. Output duals
+  are total derivatives and can be negative under large retained
+  content. Scores on any data with `v > 0` differ from 0.5.x.
+* The previous input-fixed programme with the materials-balance cap
+  survives unchanged as `model = "wgd_input_fixed"` (briefly named
+  `wgd_anchored` in unreleased development commits), documented as the
+  package's own current-input benchmark rather than Eq. 6. It keeps
+  the cap, `mb_headroom`, infeasibility confined to violators, and the
+  per-pollutant cap rows.
+
+## Several intended outputs
+
+* `pgt_tech()` accepts `y` as an L x M matrix with named columns and
+  `v` in per-output shapes up to an L x M x P array; every historical
+  single-output shape still works. All estimators except `fdmo` and
+  `pgt_ml` handle M > 1 (those two stop with a clear error, since
+  their directions are defined for a single output). Fits carry one
+  column per output and per-output duals; `mac_curve()` requires a
+  single-output fit.
+
+## The Eq. 11 decomposition
+
+* `pgt_decompose(type = "rodseth")` is now the five-component
+  decomposition of Rodseth (2025, Eq. 11), built on stage programmes
+  of the extended representation (Eq. 9): TE production, Quality
+  (producer-specific coefficients), AE production, TE abatement
+  (observed abatement output) and AE abatement (dedicated
+  pollution-control inputs). Components collapse to exactly 1 when the
+  data cannot separate them, and their product telescopes to the wgd
+  efficiency. Technology groups are no longer required for this type.
+  The stage programmes use measurement-consistent uncontrolled
+  emissions `z = b + a`, which coincide with the paper's accounting
+  when accounts close.
+* `x_abate` is now functional: it partitions the inputs for the two
+  abatement stages, and the recorded-but-unused warning is gone.
+* A failed stage programme is rebuilt and re-solved under
+  progressively stronger `lp_solve` scalings, each attempt
+  time-limited: with the default scaling alone, self-feasible stages
+  on large-magnitude data (emissions of order 1e7) were reported as
+  numerically failed for a handful of units.
+* `pgt_ml()` now defaults to `technology = "wd"`, the
+  weak-disposability reference under which Oh (2010) defines the
+  index, and the input-keeping exploratory option is named
+  `"input_envelope"` (previously `"wgd"`): it keeps the input rows of
+  the pre-0.6.0 programme, so after the wgd redefinition its old label
+  no longer matched the estimating model of the same name. No
+  technology label is now shared with a `pgt()` model whose programme
+  differs.
+* `inst/simulations/coverage.R` writes its results next to the script
+  when the package-source path is absent, so a sourced installed copy
+  no longer fails at the final write.
+* `boot_pgt()` returns `NA` bounds and standard error for a DMU whose
+  feasible replicates fall below half of `B`, instead of an interval
+  resting on the remainder; `n_ok` still reports the count.
+* `print.pgt_tech()` separates the dimension counts with semicolons
+  and wraps the DMU-specific-coefficient and audit lines within a
+  76-character console.
+* The negative-`b_star` warning of `model = "mb_cost"` no longer
+  attributes the sign to DMU-specific coefficients, which need not be
+  present; any positive retained-content coefficient permits it.
+* New dataset `uscoal`: 212 US coal-fired power plants (2022) with a
+  measured sulfur-dioxide materials-balance account, built from
+  EIA-923 and EPA eGRID2022 (construction in `data-raw/uscoal.R`).
+  Producer-specific sulfur-based coefficients, an FGD sorbent
+  pollution-control input for `x_abate`, an FGD/no-FGD group, and 8
+  genuinely violating accounts for the audit. `?uscoal` documents that
+  `sorbent` is 0 both without SO2 controls and at the 36 FGD plants
+  that report no sorbent quantity, so `fgd`, not a zero sorbent, is
+  the scrubbing indicator.
+* `plot.pgt_compare()` varies line type as well as colour, so the
+  series stay readable in greyscale, and labels the y axis
+  "Principal score (b*/b; EE for mb_cost)" when `mb_cost` is among
+  the compared models: its EE is a material-inflow ratio, not an
+  emission ratio. Passing `lty`, `col`, `xlab` or `ylab` overrides
+  the defaults.
+* The by-production average of the two sub-efficiencies is reported
+  as `mean_eff` (previously `fgl`): the column is a plain average,
+  not the Fare-Grosskopf-Lovell hyperbolic graph measure, and its
+  old name invited the confusion.
+* Documentation: the `status` column is documented as the `lp_solve`
+  solver code (0 solved, 2 infeasible, 5 numerically failed), and the
+  directional model's documentation warns that rescaling `y` or `b`
+  changes its implicit direction weighting, not merely the reported
+  number.
+
+# pgt 0.5.1
+
+* Terminology: the score reported in the `efficiency` column is called
+  the principal environmental-efficiency score throughout the
+  documentation and printed output; the internal helper was renamed
+  accordingly.
+
 # pgt 0.5.0
 
 Revisions from a full peer review of the package as a software
@@ -48,7 +185,8 @@ submission.
 * Two new vignettes: `models` states every estimating programme in
   full, and `multiple-pollutants` demonstrates multi-pollutant
   technologies, DMU-specific coefficients and the staged decomposition.
-* `compare_models()` documents that the headline scores are different
+* `compare_models()` documents that the models' principal scores are
+  different
   quantities (EE for mb_cost) and that only rank-based statistics are
   strictly comparable; `mac_curve()` documents which margin the curve
   prices; foundational and origin literature is cited (Ayres and

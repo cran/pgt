@@ -8,25 +8,27 @@
 #' function puts the competing systems side by side so the sensitivity of
 #' conclusions to that choice is visible.
 #'
-#' Each model reports its headline environmental-efficiency score,
+#' Each model reports its principal environmental-efficiency score,
 #' normalised so that 1 is efficient: \eqn{b^*/b} for \code{"wgd"},
-#' \code{"envelope"}, \code{"byprod"} and \code{"wd"}, and the
-#' material-inflow ratio \eqn{EE = u'x^*/u'x} for \code{"mb_cost"}. The
-#' directional model \code{"fdmo"} stays excluded, since its score is a
-#' gross inefficiency on another scale. Because the scores measure
-#' different quantities, only the rank-based statistics (the Spearman
-#' matrix and the bottom-quartile overlap) are strictly comparable
-#' across models; the median column is a per-model summary. Rank
-#' agreement is measured by Spearman correlation over the DMUs solved
-#' by both members of each pair. Note that \code{"wgd"} scores can
-#' exceed 1 for DMUs violating another pollutant's materials-balance
-#' identity (see [pgt()]); such DMUs enter the comparison unflagged.
+#' \code{"wgd_input_fixed"}, \code{"envelope"}, \code{"byprod"} and
+#' \code{"wd"}, and the material-inflow ratio \eqn{EE = u'x^*/u'x} for
+#' \code{"mb_cost"}. The directional model \code{"fdmo"} stays
+#' excluded, since its score is a gross inefficiency on another scale.
+#' Because the scores measure different quantities, only the rank-based
+#' statistics (the Spearman matrix and the bottom-quartile overlap) are
+#' strictly comparable across models; the median column is a per-model
+#' summary. Rank agreement is measured by Spearman correlation over the
+#' DMUs solved by both members of each pair. Note that
+#' \code{"wgd_input_fixed"} scores can exceed 1 for DMUs violating another
+#' pollutant's materials-balance identity (see [pgt()]); such DMUs
+#' enter the comparison unflagged.
 #'
 #' @param tech A [pgt_tech()] object.
 #' @param models Character vector of models to compare. Defaults to
 #'   \code{c("wgd", "byprod", "mb_cost", "wd")}: the weak-G-disposability
 #'   (materials balance), by-production, materials-balance cost and
-#'   weak-disposability systems.
+#'   weak-disposability systems. \code{"wgd_input_fixed"} and
+#'   \code{"envelope"} may be added.
 #' @param returns Returns to scale passed to every model: \code{"vrs"}
 #'   (default) or \code{"crs"}.
 #' @param peers Reference set passed to every model: \code{"all"}
@@ -96,7 +98,8 @@ compare_models <- function(tech,
          "compare_models(): its score is a gross inefficiency, not an ",
          "efficiency b*/b.", call. = FALSE)
   }
-  valid <- c("wgd", "envelope", "byprod", "mb_cost", "wd")
+  valid <- c("wgd", "wgd_input_fixed", "envelope", "byprod", "mb_cost",
+             "wd")
   bad <- setdiff(models, valid)
   if (length(bad)) {
     stop("compare_models() compares efficiency-scored models; drop: ",
@@ -167,7 +170,7 @@ print.pgt_compare <- function(x, ...) {
   cat(sprintf("pgt model comparison: %d models, returns = %s, peers = %s\n",
               length(x$models), x$returns, x$peers))
   cat(sprintf("  models: %s\n", paste(x$models, collapse = ", ")))
-  cat("\nHeadline environmental efficiency by model (b*/b; EE for mb_cost):\n")
+  cat("\nPrincipal environmental efficiency by model (b*/b; EE for mb_cost):\n")
   print(x$agreement, row.names = FALSE, digits = 4)
   cat("\nSpearman rank correlation:\n")
   print(round(x$spearman, 3))
@@ -193,13 +196,22 @@ as.data.frame.pgt_compare <- function(x, ...) {
 plot.pgt_compare <- function(x, ...) {
   score_cols <- x$models
   m <- as.matrix(x$scores[score_cols])
-  graphics::matplot(
-    seq_len(nrow(m)), m[order(m[, 1]), , drop = FALSE],
-    type = "l", lty = 1, col = seq_along(score_cols),
-    xlab = "DMU (ordered by first model's efficiency)",
-    ylab = "Environmental efficiency (b*/b)", ...
-  )
+  # vary line type as well as colour so the series stay readable in
+  # greyscale, and label the axis with what each model's score is:
+  # b*/b for the disposability models, EE for mb_cost
+  dots <- list(...)
+  if (is.null(dots$lty)) dots$lty <- seq_along(score_cols)
+  if (is.null(dots$col)) dots$col <- seq_along(score_cols)
+  if (is.null(dots$xlab))
+    dots$xlab <- "DMU (ordered by first model's efficiency)"
+  if (is.null(dots$ylab))
+    dots$ylab <- if ("mb_cost" %in% score_cols)
+      "Principal score (b*/b; EE for mb_cost)"
+    else "Environmental efficiency (b*/b)"
+  do.call(graphics::matplot,
+          c(list(seq_len(nrow(m)), m[order(m[, 1]), , drop = FALSE],
+                 type = "l"), dots))
   graphics::legend("bottomright", legend = score_cols,
-                   col = seq_along(score_cols), lty = 1, bty = "n")
+                   col = dots$col, lty = dots$lty, bty = "n")
   invisible(x)
 }

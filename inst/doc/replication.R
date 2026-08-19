@@ -18,7 +18,8 @@ tech <- pgt_tech(
   id = pigfarms$farm
 )
 fit <- pgt(tech, model = "wgd")
-data.frame(farm = fit$results$id, b_star = fit$results$b_star)
+data.frame(farm = fit$results$id, b_star = fit$results$b_star,
+           z_star = fit$results$z_star, a_star = fit$results$a_star)
 
 ## -----------------------------------------------------------------------------
 v <- 7 / 6
@@ -55,7 +56,7 @@ mrl <- pgt_tech(
 bp <- pgt(mrl, model = "byprod", returns = "crs")
 rb <- bp$results
 data.frame(id = rb$id, output_eff = round(rb$output_eff, 4),
-           emission_eff = round(rb$efficiency, 4), fgl = round(rb$fgl, 4))
+           emission_eff = round(rb$efficiency, 4), mean_eff = round(rb$mean_eff, 4))
 
 ## -----------------------------------------------------------------------------
 farms <- data.frame(

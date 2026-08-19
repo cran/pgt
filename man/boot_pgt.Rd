@@ -6,7 +6,7 @@
 \usage{
 boot_pgt(
   tech,
-  model = c("wgd", "envelope", "byprod", "mb_cost", "wd"),
+  model = c("wgd", "wgd_input_fixed", "envelope", "byprod", "mb_cost", "wd"),
   B = 200,
   m = NULL,
   level = 0.95,
@@ -21,13 +21,14 @@ boot_pgt(
 \item{tech}{A [pgt_tech()] object.}
 
 \item{model}{One of the environmental-efficiency models
-(\code{"wgd"}, \code{"envelope"}, \code{"byprod"}, \code{"mb_cost"},
-\code{"wd"}); the directional model \code{"fdmo"} is not supported.}
+(\code{"wgd"}, \code{"wgd_input_fixed"}, \code{"envelope"},
+\code{"byprod"}, \code{"mb_cost"}, \code{"wd"}); the directional
+model \code{"fdmo"} is not supported.}
 
 \item{B}{Number of subsampling replicates.}
 
-\item{m}{Subsample size. Defaults to \code{round(L^0.7)}, a point in
-the interior of the admissible range; Simar and Wilson (2011) show
+\item{m}{Subsample size. Defaults to \code{max(2, round(L^0.7))}, a
+point in the interior of the admissible range; Simar and Wilson (2011) show
 that sensitivity to \code{m} is the central practical issue, so
 check the default with [boot_pgt_sensitivity()].}
 
@@ -36,12 +37,14 @@ check the default with [boot_pgt_sensitivity()].}
 \item{kappa}{Convergence-rate exponent used to rescale the subsample
 distribution. Defaults to the DEA rate \eqn{2/(d+1)} under VRS and
 \eqn{2/d} under CRS (Kneip, Simar and Wilson 2008) for the model's
-effective frontier dimension \eqn{d}: \eqn{N+2} for \code{"wgd"}
-and \code{"wd"} (inputs, good and bad output), \eqn{N+1} for
-\code{"mb_cost"} and \code{"byprod"} (whose programs live in the
-\eqn{(x, y)} and sub-technology spaces), and \eqn{2} for the
-input-free \code{"envelope"} model, whose frontier lives in the
-\eqn{(y, b)} plane. A heuristic; supply your own exponent to
+effective frontier dimension \eqn{d}: \eqn{M+1} for \code{"wgd"}
+and \code{"envelope"}, whose frontiers live in the \eqn{(y, b)}
+space with the inputs free; \eqn{N+M+1} for \code{"wgd_input_fixed"}
+and \code{"wd"} (inputs, good and bad outputs); \eqn{N+M} for
+\code{"mb_cost"}, whose programmes live in the \eqn{(x, y)} space;
+and the number of emission-causing inputs plus one for
+\code{"byprod"}, whose principal score comes from the residual
+sub-technology. A heuristic; supply your own exponent to
 override.}
 
 \item{returns, peers, pollutant}{Passed to the underlying model, as in
@@ -81,7 +84,9 @@ carry genuine resampling variation instead of a degenerate
 zero-width interval. Replicates in which a DMU's program is
 infeasible are dropped as \code{NA} and counted: \code{per_dmu$n_ok}
 reports the number of feasible replicates behind each interval, and
-a warning is issued when it falls below half of \code{B}. Because a
+a DMU whose count falls below half of \code{B} is returned with
+\code{NA} bounds and standard error, with a warning, rather than
+with an interval resting on the few feasible replicates. Because a
 subsample frontier lies weakly inside the full-sample frontier, the
 deviations are non-negative and the interval extends downward from
 the point estimate, matching the direction of the frontier bias; the

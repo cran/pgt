@@ -1,16 +1,20 @@
 #' Audit the materials-balance identity
 #'
 #' Pre-estimation feasibility audit of the materials-balance condition
-#' \eqn{u'x_l - v y_l \ge b_l} for every DMU (and every pollutant). DMUs
+#' \eqn{u'x_l - v'y_l \ge b_l} for every DMU (and every pollutant). DMUs
 #' that violate the identity carry inconsistent material accounts (more
 #' pollutant leaves than enters). A violation makes self-reference
-#' infeasible in the weak-G-disposability program, so that DMU's LP
-#' solves only if some peer mix meets every constraint within its
-#' materials-balance cap; conversely, infeasibility is confined to DMUs
-#' with an exact violation, \code{gap < 0}, in at least one pollutant
-#' account (pollutant \eqn{p}'s LP can be infeasible because of a
-#' violation in a different pollutant \eqn{q}; DMUs satisfying every
-#' account always solve via self-reference). Audit before estimation.
+#' infeasible in the input-fixed \code{"wgd_input_fixed"} programme of
+#' [pgt()], so that DMU's LP solves only if some peer mix meets every
+#' constraint within its materials-balance cap; conversely,
+#' infeasibility is confined to DMUs with an exact violation,
+#' \code{gap < 0}, in at least one pollutant account (pollutant
+#' \eqn{p}'s LP can be infeasible because of a violation in a different
+#' pollutant \eqn{q}; DMUs satisfying every account always solve via
+#' self-reference). The faithful \code{"wgd"} programme is always
+#' self-feasible, so its scores carry no feasibility screen; the audit
+#' remains the data-quality check behind its materials-balance
+#' interpretation. Audit before estimation.
 #'
 #' @param tech A [pgt_tech()] object.
 #' @param tol Relative tolerance: a DMU-pollutant account is flagged
@@ -18,16 +22,16 @@
 #'   its pollutant potential \eqn{u'x_l}. The flag is a data-quality
 #'   screen; LP infeasibility tracks the exact sign of the gap, so the
 #'   flagged set is a subset of the accounts with \code{gap < 0}
-#'   (counted separately in attribute \code{"n_exact"}).
+#'   (counted separately in attribute \code{"n_negative"}).
 #'
 #' @return A data frame of class \code{"pgt_mb"} with one row per DMU
 #'   (per pollutant when several are present): \code{id}, \code{group}
 #'   (if present), \code{pollutant} (when several), \code{potential}
-#'   (\eqn{u'x_l}), \code{retained} (\eqn{v y_l}), \code{b}, \code{gap}
-#'   (\eqn{u'x_l - v y_l - b_l}), \code{rel_gap} (\code{gap / potential})
+#'   (\eqn{u'x_l}), \code{retained} (\eqn{v'y_l}), \code{b}, \code{gap}
+#'   (\eqn{u'x_l - v'y_l - b_l}), \code{rel_gap} (\code{gap / potential})
 #'   and \code{violated}. When the technology records an abatement
 #'   output, also \code{a} and \code{closure} (\eqn{gap - a_l}): the
-#'   equality residual \eqn{u'x_l - v y_l - b_l - a_l}, zero when the
+#'   equality residual \eqn{u'x_l - v'y_l - b_l - a_l}, zero when the
 #'   account closes exactly, which \code{model = "fdmo"} requires. The
 #'   number of violations is attached as attribute
 #'   \code{"n_violations"}.
@@ -51,7 +55,7 @@ mb_check <- function(tech, tol = 1e-8) {
   P <- tech$P
   parts <- lapply(seq_len(P), function(p) {
     potential <- .mb_potential(tech, p)
-    retained <- tech$v[, p] * tech$y
+    retained <- .retained(tech, p)
     gap <- potential - retained - tech$b[, p]
     rel_gap <- gap / pmax(potential, .Machine$double.eps)
     d <- data.frame(
@@ -76,7 +80,7 @@ mb_check <- function(tech, tol = 1e-8) {
   class(out) <- c("pgt_mb", "data.frame")
   attr(out, "tol") <- tol
   attr(out, "n_violations") <- sum(out$violated)
-  attr(out, "n_exact") <- sum(out$gap < 0)
+  attr(out, "n_negative") <- sum(out$gap < 0)
   attr(out, "P") <- P
   out
 }
@@ -99,7 +103,7 @@ print.pgt_mb <- function(x, ...) {
   cat(sprintf("  closure gap (gap / potential): min %.4f, median %.4f, max %.4f\n",
               min(x$rel_gap), stats::median(x$rel_gap), max(x$rel_gap)))
   ne <- sum(x$gap < 0)
-  cat(sprintf("  accounts with gap < 0 (exact): %d; any infeasible weak-G LPs are confined to DMUs with gap < 0 in at least one account\n",
+  cat(sprintf("  accounts with gap < 0 (exact): %d; any infeasible \"wgd_input_fixed\" LPs are confined to DMUs with gap < 0 in at least one account\n",
               ne))
   if (!is.null(x$closure)) {
     cat(sprintf("  equality closure (gap - a): largest |closure| / potential = %.2g (model = \"fdmo\" requires exact closure)\n",

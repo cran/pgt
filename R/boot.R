@@ -21,7 +21,9 @@
 #' zero-width interval. Replicates in which a DMU's program is
 #' infeasible are dropped as \code{NA} and counted: \code{per_dmu$n_ok}
 #' reports the number of feasible replicates behind each interval, and
-#' a warning is issued when it falls below half of \code{B}. Because a
+#' a DMU whose count falls below half of \code{B} is returned with
+#' \code{NA} bounds and standard error, with a warning, rather than
+#' with an interval resting on the few feasible replicates. Because a
 #' subsample frontier lies weakly inside the full-sample frontier, the
 #' deviations are non-negative and the interval extends downward from
 #' the point estimate, matching the direction of the frontier bias; the
@@ -55,23 +57,26 @@
 #'
 #' @param tech A [pgt_tech()] object.
 #' @param model One of the environmental-efficiency models
-#'   (\code{"wgd"}, \code{"envelope"}, \code{"byprod"}, \code{"mb_cost"},
-#'   \code{"wd"}); the directional model \code{"fdmo"} is not supported.
+#'   (\code{"wgd"}, \code{"wgd_input_fixed"}, \code{"envelope"},
+#'   \code{"byprod"}, \code{"mb_cost"}, \code{"wd"}); the directional
+#'   model \code{"fdmo"} is not supported.
 #' @param B Number of subsampling replicates.
-#' @param m Subsample size. Defaults to \code{round(L^0.7)}, a point in
-#'   the interior of the admissible range; Simar and Wilson (2011) show
+#' @param m Subsample size. Defaults to \code{max(2, round(L^0.7))}, a
+#'   point in the interior of the admissible range; Simar and Wilson (2011) show
 #'   that sensitivity to \code{m} is the central practical issue, so
 #'   check the default with [boot_pgt_sensitivity()].
 #' @param level Confidence level for the intervals.
 #' @param kappa Convergence-rate exponent used to rescale the subsample
 #'   distribution. Defaults to the DEA rate \eqn{2/(d+1)} under VRS and
 #'   \eqn{2/d} under CRS (Kneip, Simar and Wilson 2008) for the model's
-#'   effective frontier dimension \eqn{d}: \eqn{N+2} for \code{"wgd"}
-#'   and \code{"wd"} (inputs, good and bad output), \eqn{N+1} for
-#'   \code{"mb_cost"} and \code{"byprod"} (whose programs live in the
-#'   \eqn{(x, y)} and sub-technology spaces), and \eqn{2} for the
-#'   input-free \code{"envelope"} model, whose frontier lives in the
-#'   \eqn{(y, b)} plane. A heuristic; supply your own exponent to
+#'   effective frontier dimension \eqn{d}: \eqn{M+1} for \code{"wgd"}
+#'   and \code{"envelope"}, whose frontiers live in the \eqn{(y, b)}
+#'   space with the inputs free; \eqn{N+M+1} for \code{"wgd_input_fixed"}
+#'   and \code{"wd"} (inputs, good and bad outputs); \eqn{N+M} for
+#'   \code{"mb_cost"}, whose programmes live in the \eqn{(x, y)} space;
+#'   and the number of emission-causing inputs plus one for
+#'   \code{"byprod"}, whose principal score comes from the residual
+#'   sub-technology. A heuristic; supply your own exponent to
 #'   override.
 #' @param returns,peers,pollutant Passed to the underlying model, as in
 #'   [pgt()].
@@ -124,7 +129,8 @@
 #' head(bt$per_dmu)
 #' }
 #' @export
-boot_pgt <- function(tech, model = c("wgd", "envelope", "byprod",
+boot_pgt <- function(tech, model = c("wgd", "wgd_input_fixed",
+                                     "envelope", "byprod",
                                      "mb_cost", "wd"),
                      B = 200, m = NULL, level = 0.95, kappa = NULL,
                      returns = c("vrs", "crs"), peers = c("all", "group"),
@@ -141,15 +147,16 @@ boot_pgt <- function(tech, model = c("wgd", "envelope", "byprod",
     stop("'m' must lie in 2..L.", call. = FALSE)
   }
   if (is.null(kappa)) {
-    # effective frontier dimension: wgd/wd use (x, y, b); mb_cost lives
-    # in (x, y); byprod's headline score comes from the T2 sub-LP over
-    # the polluting inputs and b; the input-free envelope lives in the
-    # (y, b) plane
+    # effective frontier dimension: wgd and the envelope live in the
+    # (y, b) space (inputs free); wgd_input_fixed/wd use (x, y, b);
+    # mb_cost lives in (x, y); byprod's principal score comes from the
+    # T2 sub-LP over the polluting inputs and b
     dims <- switch(model,
-      envelope = 2L,
-      mb_cost = tech$N + 1L,
+      wgd = tech$M + 1L,
+      envelope = tech$M + 1L,
+      mb_cost = tech$N + tech$M,
       byprod = length(.polluting_inputs(tech, p)) + 1L,
-      tech$N + 2L)
+      tech$N + tech$M + 1L)
     kappa <- if (vrs) 2 / (dims + 1) else 2 / dims
   }
   stopifnot(is.numeric(kappa), length(kappa) == 1L, kappa > 0)
@@ -234,11 +241,19 @@ boot_pgt <- function(tech, model = c("wgd", "envelope", "byprod",
   )
   per_dmu <- .insert_group(per_dmu, grp)
   rownames(per_dmu) <- NULL
-  n_thin <- sum(n_ok < B / 2)
+  # a unit whose feasible replicates fall below half of B carries too
+  # little resampling information for an interval: report NA bounds
+  # under the recorded n_ok instead of an interval resting on the
+  # remainder
+  thin <- n_ok < B / 2
+  per_dmu$lower[thin] <- NA_real_
+  per_dmu$upper[thin] <- NA_real_
+  per_dmu$se[thin] <- NA_real_
+  n_thin <- sum(thin)
   if (n_thin > 0) {
     warning(sprintf(paste0(
       "%d of %d DMUs have infeasible LPs in more than half of their ",
-      "subsample replicates; their intervals rest on few replicates ",
+      "subsample replicates; their bounds are returned as NA ",
       "(see per_dmu$n_ok)."), n_thin, L), call. = FALSE)
   }
 
@@ -276,15 +291,15 @@ boot_pgt <- function(tech, model = c("wgd", "envelope", "byprod",
 }
 
 # Environmental efficiency of every DMU under `model`, evaluated against
-# the supplied per-DMU peer sets. The headline-score definition is
-# shared with pgt() through .headline_score().
+# the supplied per-DMU peer sets. The principal-score definition is
+# shared with pgt() through .model_score().
 .model_efficiency <- function(tech, model, vrs, p, peer_sets, ctx = NULL) {
   if (is.null(ctx)) ctx <- .solve_ctx(tech, model, p)
   b_i <- ctx$b_p
   vapply(seq_len(tech$L), function(i) {
     sol <- .lp_solve_one(model, i, tech, peer_sets[[i]], vrs, p = p,
                          ctx = ctx)
-    .headline_score(model, sol, b_i[i])
+    .model_score(model, sol, b_i[i])
   }, numeric(1))
 }
 

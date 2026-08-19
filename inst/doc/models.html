@@ -244,19 +244,56 @@ evaluated unit <span class="math inline">\(i\)</span> against a
 reference (peer) set. This vignette states each programme as solved, so
 the mapping from the cited papers to the code can be checked without
 reading the source. Throughout, <span class="math inline">\(\lambda \ge
-0\)</span> are intensity weights over the peers, <span class="math inline">\(x\)</span> the <span class="math inline">\(N\)</span> material inputs, <span class="math inline">\(y\)</span> the good output, <span class="math inline">\(b\)</span> the bad output of the selected
+0\)</span> are intensity weights over the peers, <span class="math inline">\(x\)</span> the <span class="math inline">\(N\)</span> material inputs, <span class="math inline">\(y\)</span> the <span class="math inline">\(M\)</span> good outputs (written as a single
+output where the original model is scalar; the output rows repeat per
+column of <span class="math inline">\(y\)</span>), <span class="math inline">\(b\)</span> the bad output of the selected
 pollutant, and the variable-returns row <span class="math inline">\(\sum_l \lambda_l = 1\)</span> is dropped under
 constant returns. The materials-balance cap of unit <span class="math inline">\(i\)</span> for pollutant <span class="math inline">\(p\)</span> is <span class="math inline">\(c_{pi} =
-u_{pi}&#39;x_i - v_{pi} y_i\)</span>, with DMU-specific coefficients
-<span class="math inline">\(u_{pi}\)</span> (a row of the <span class="math inline">\(L \times N \times P\)</span> array) and <span class="math inline">\(v_{pi}\)</span>.</p>
+u_{pi}&#39;x_i - v_{pi}&#39;y_i\)</span>, with DMU-specific coefficients
+<span class="math inline">\(u_{pi}\)</span> (a row of the <span class="math inline">\(L \times N \times P\)</span> array) and <span class="math inline">\(v_{pi}\)</span> (a row of the <span class="math inline">\(L \times M \times P\)</span> array).</p>
 <div id="weak-g-disposability-model-wgd" class="section level2">
 <h2>Weak-G-disposability (<code>model = &quot;wgd&quot;</code>)</h2>
-<p>The reduced form of Rødseth (2025, Eq. 6) used by the package is
-<span class="math display">\[
+<p>Equation 6 of Rødseth (2025) minimises emissions over peer mixes that
+hold only the intended outputs at the evaluated unit’s levels: the
+inputs are decision variables, and the weak-G summing-up condition <span class="math inline">\(u_i&#39;\varepsilon_x + v_i&#39;\varepsilon_y =
+\varepsilon_b\)</span> ties the disposal slacks of inputs, outputs and
+the bad output together. Substituting the condition and setting the
+input slacks to zero collapses the programme to the reduced form solved
+by the package, <span class="math display">\[
+b^*_i = \min_{\lambda}\ \textstyle\sum_l \lambda_l
+\bigl(b_l + v_i&#39;y_l\bigr) - v_i&#39;y_i
+\quad\text{s.t.}\quad
+\textstyle\sum_l \lambda_l y_{ml} \ge y_{mi},\qquad
+\textstyle\sum_l \lambda_l = 1,\qquad \lambda \ge 0:
+\]</span> the peer emission envelope plus the retained content of good
+output produced beyond the unit’s own levels, valued at the unit’s own
+coefficients <span class="math inline">\(v_i\)</span>. Self-reference is
+always feasible, so every score <span class="math inline">\(b^*_i/b_i\)</span> lies in <span class="math inline">\((0, 1]\)</span>, and a materials-balance violation
+in the data does not affect the programme (the audit in
+<code>mb_check()</code> remains a data-quality check). When the
+abatement output is observed the optimal peer mix also delivers the
+projection’s implied uncontrolled emission <span class="math inline">\(z^* = \sum_l \lambda_l z_l\)</span>, with <span class="math inline">\(z_l = u_l&#39;x_l - v_l&#39;y_l\)</span> the
+peer’s materials-balance cap (equal to <span class="math inline">\(b_l +
+a_l\)</span> when the peer’s account closes), and abatement <span class="math inline">\(a^* = \sum_l \lambda_l a_l\)</span>. Faithfulness
+to the paper is exercised numerically: the programme reproduces the
+Table 2 minima of Rødseth (2025) and agrees with an independent
+reference implementation in the test suite. The reported output duals
+are the total derivatives <span class="math inline">\(\partial
+b^*_i/\partial y_{mi} = \mu_m - v_{mi}\)</span>, which can be negative
+when the retained content is large: producing more output binds more
+pollutant into the product.</p>
+</div>
+<div id="the-input-fixed-benchmark-model-wgd_input_fixed" class="section level2">
+<h2>The input-fixed benchmark
+(<code>model = &quot;wgd_input_fixed&quot;</code>)</h2>
+<p>The model estimated as <code>&quot;wgd&quot;</code> before version 0.6.0 holds
+the evaluated unit’s inputs fixed and adds the unit’s own
+materials-balance cap: <span class="math display">\[
 \begin{aligned}
 \min_{\lambda,\, b_q}\quad &amp; b_q \\
 \text{s.t.}\quad
-&amp; \textstyle\sum_l \lambda_l y_l \ge y_i, \\
+&amp; \textstyle\sum_l \lambda_l y_{ml} \ge y_{mi}, \qquad m = 1, \dots,
+M,\\
 &amp; \textstyle\sum_l \lambda_l x_{nl} \le x_{ni}, \qquad n = 1, \dots,
 N,\\
 &amp; \textstyle\sum_l \lambda_l b_l \le b_q, \\
@@ -264,14 +301,10 @@ N,\\
 &amp; \textstyle\sum_l \lambda_l b_{ql} \le c_{qi}, \qquad q \ne p,\\
 &amp; \textstyle\sum_l \lambda_l = 1, \qquad \lambda \ge 0,\ b_q \ge 0.
 \end{aligned}
-\]</span> The first three rows are the free-disposal envelope of
-outputs, inputs and the peer emissions; the cap row keeps the projected
-bad output consistent with the evaluated unit’s own pollutant potential,
-which is how the weak-G summing-up condition on the disposal slacks
-enters the reduced form. The environmental efficiency is <span class="math inline">\(b^*/b_i\)</span>. Faithfulness to the paper is
-exercised numerically: the programme reproduces the Table 2 minima of
-Rødseth (2025) and agrees with an independent reference implementation
-in the test suite.</p>
+\]</span> This is not Eq. 6, whose inputs are free; it is the package’s
+own current-input companion: the emission reduction attainable at the
+unit’s observed input endowment, with the cap row keeping the projection
+consistent with the unit’s own pollutant potential.</p>
 <p>With several pollutants, each remaining pollutant <span class="math inline">\(q \ne p\)</span> contributes the single row shown
 above. This collapse is exact: pollutant <span class="math inline">\(q\)</span> carries no objective term, so
 introducing its own emission variable <span class="math inline">\(b_q&#39;\)</span> with <span class="math inline">\(\sum_l \lambda_l b_{ql} \le b_q&#39; \le
@@ -288,16 +321,17 @@ with scores in <span class="math inline">\((0, 1]\)</span>.</p>
 <div id="the-y-b-lower-envelope-model-envelope" class="section level2">
 <h2>The <span class="math inline">\((y, b)\)</span> lower envelope
 (<code>model = &quot;envelope&quot;</code>)</h2>
-<p>Freeing the inputs reduces Eq. 6 to the convex lower envelope of the
-<span class="math inline">\((y, b)\)</span> scatter: <span class="math display">\[
+<p>Setting <span class="math inline">\(v = 0\)</span> in the
+<code>&quot;wgd&quot;</code> reduced form drops the retained-content term and
+leaves the convex lower envelope of the <span class="math inline">\((y,
+b)\)</span> scatter: <span class="math display">\[
 \min_{\lambda}\ \textstyle\sum_l \lambda_l b_l
 \quad\text{s.t.}\quad
-\textstyle\sum_l \lambda_l y_l \ge y_i,\qquad
+\textstyle\sum_l \lambda_l y_{ml} \ge y_{mi},\qquad
 \textstyle\sum_l \lambda_l = 1,\qquad \lambda \ge 0.
-\]</span> With the inputs free, the weak-G slack equality is absorbed by
-the input reallocation: whatever peer mix is chosen, the inputs adjust
-with it and the emissions follow the pollutant they carry.
-Self-reference is always feasible, so every score lies in <span class="math inline">\((0, 1]\)</span>.</p>
+\]</span> The two programmes coincide on data whose products retain no
+pollutant. Self-reference is always feasible, so every score lies in
+<span class="math inline">\((0, 1]\)</span>.</p>
 </div>
 <div id="the-directional-representation-model-fdmo" class="section level2">
 <h2>The directional representation (<code>model = &quot;fdmo&quot;</code>)</h2>
@@ -323,7 +357,52 @@ infeasible or shift the closure gap into the scores, and
 the row forces <span class="math inline">\(\theta_b =
 v_i\,\theta_y\)</span>. The gross inefficiency <span class="math inline">\(\theta_y + \theta_b\)</span> adds good-output
 units to bad-output units (direction <span class="math inline">\((1,
-1)\)</span>), so it is unit-dependent.</p>
+1)\)</span>), so it is unit-dependent. The model is defined for a single
+intended output.</p>
+</div>
+<div id="the-decomposition-stage-programmes-pgt_decomposetype-rodseth" class="section level2">
+<h2>The decomposition stage programmes
+(<code>pgt_decompose(type = &quot;rodseth&quot;)</code>)</h2>
+<p>The five components of Rødseth (2025, Eq. 11) are ratios of stage
+minima of the extended representation (Eq. 9). Write <span class="math inline">\(w_l = u_i&#39;x_l - v_i&#39;y_l\)</span> for peer
+<span class="math inline">\(l\)</span>’s account valued at the evaluated
+unit’s coefficients, <span class="math inline">\(z_l\)</span> for its
+uncontrolled emission, <span class="math inline">\(q_l = z_l -
+w_l\)</span> for its quality gap, and <span class="math inline">\(a_l\)</span> for its abatement. Each stage solves
+<span class="math display">\[
+\begin{aligned}
+\min\quad &amp; z - a \\
+\text{s.t.}\quad
+&amp; \textstyle\sum_l \lambda_l y_{ml} - \varepsilon_{y,m} = y_{mi},
+  \qquad m = 1, \dots, M,\\
+&amp; \textstyle\sum_l \lambda_l x_{nl} + \varepsilon_{x,n} = x_{ni}
+  \qquad \text{for each held input } n,\\
+&amp; \rho = \textstyle\sum_l \lambda_l q_l, \qquad
+  z = \textstyle\sum_l \lambda_l w_l + \rho + \varepsilon_z, \qquad
+  a = \textstyle\sum_l \lambda_l a_l - \varepsilon_a, \\
+&amp; \varepsilon_z + \varepsilon_a = u_i&#39;\varepsilon_x +
+  v_i&#39;\varepsilon_y, \\
+&amp; \textstyle\sum_l \lambda_l = 1, \qquad \lambda \ge 0,\
+  \varepsilon \ge 0,
+\end{aligned}
+\]</span> where the summing-up row relaxes to <span class="math inline">\(\ge\)</span> when an input with positive material
+content is freed (a freed input’s disposal slack can absorb any amount).
+Holding the quality variable fixes <span class="math inline">\(\rho =
+0\)</span>; holding the abatement output fixes <span class="math inline">\(a = a_i\)</span>; holding an input keeps its row,
+and freeing it deletes the row. The stages hold everything first and
+then free, in order, the quality variable, the production inputs, the
+abatement output and the pollution-control inputs; the ratios of
+successive minima are the five components reported by
+<code>pgt_decompose()</code>, and the fully freed stage reproduces the
+reduced form of Eq. 6, so the components multiply to the
+<code>wgd</code> efficiency exactly.</p>
+<p>When the abatement output is unobserved, the implied abatement <span class="math inline">\(a_l = z_l - b_l\)</span> closes each account by
+construction and abatement is left endogenous in every stage, which
+collapses the two abatement components to 1. When abatement is observed
+but an account does not close exactly, the stages use the
+measurement-consistent uncontrolled emission <span class="math inline">\(z_l = b_l + a_l\)</span>, so that peers’
+controlled emissions equal their measured <span class="math inline">\(b_l\)</span>; the two constructions coincide when
+every account closes, the case of Rødseth (2025).</p>
 </div>
 <div id="the-materials-balance-cost-model-model-mb_cost" class="section level2">
 <h2>The materials-balance cost model
@@ -339,9 +418,9 @@ x_{ni}\ \forall n,\ \sum_l \lambda_l y_l \ge y_i,\ \sum_l \lambda_l =
 EE = \frac{\min\{u_{pi}&#39;\chi :\ \sum_l \lambda_l x_{nl} \le \chi_n\
 \forall n,\ \sum_l \lambda_l y_l \ge y_i,\ \sum_l \lambda_l = 1\}}
 {u_{pi}&#39;x_i},
-\]</span> with environmental-allocative efficiency <span class="math inline">\(EAE = EE / TE\)</span>. The headline score is
+\]</span> with environmental-allocative efficiency <span class="math inline">\(EAE = EE / TE\)</span>. The principal score is
 <span class="math inline">\(EE\)</span>, a material-inflow ratio rather
-than an emission ratio; the implied minimal controlled emission <span class="math inline">\(u_{pi}&#39;\chi^* - v_{pi} y_i\)</span> is
+than an emission ratio; the implied minimal controlled emission <span class="math inline">\(u_{pi}&#39;\chi^* - v_{pi}&#39;y_i\)</span> is
 reported as <code>b_star</code> and can be negative under DMU-specific
 coefficients, in which case <code>pgt()</code> warns.</p>
 </div>
@@ -361,8 +440,9 @@ below, <span class="math display">\[
 E_2 = \min\{\psi :\ \textstyle\sum_l \mu_l b_l \le \psi b_i,\ \sum_l
 \mu_l x_{nl} \ge x_{ni}\ \forall n \in \mathcal{P},\ \sum_l \mu_l =
 1\}.
-\]</span> <span class="math inline">\(E_2\)</span> is the headline
-environmental efficiency; <code>fgl</code> is the arithmetic mean <span class="math inline">\((E_1 + E_2)/2\)</span>, in the spirit of the
+\]</span> <span class="math inline">\(E_2\)</span> is the principal
+environmental efficiency; <code>mean_eff</code> is the arithmetic mean
+<span class="math inline">\((E_1 + E_2)/2\)</span>, in the spirit of the
 Färe-Grosskopf-Lovell graph measure. If either sub-programme fails,
 every score of that unit is <code>NA</code>.</p>
 </div>
@@ -391,14 +471,15 @@ production plan.</p>
 <p>The global Malmquist-Luenberger index scores every observation <span class="math inline">\(k\)</span> on a directional distance with
 direction <span class="math inline">\(g = (y_k, b_k)\)</span> against a
 reference set <span class="math inline">\(R\)</span> (a period or the
-pooled panel). Under <code>technology = &quot;wd&quot;</code> the distance uses
-the Kuosmanen weak-disposability technology above with <span class="math inline">\(\sum_{l \in R} z_l b_l = (1 - \beta) b_k\)</span>
+pooled panel); the index is defined for a single good output. Under
+<code>technology = &quot;wd&quot;</code> the distance uses the Kuosmanen
+weak-disposability technology above with <span class="math inline">\(\sum_{l \in R} z_l b_l = (1 - \beta) b_k\)</span>
 and <span class="math inline">\(\sum_{l \in R} z_l y_l \ge (1 + \beta)
 y_k\)</span>; this is the technology under which Chung, Färe and
 Grosskopf (1997) and Oh (2010) define the index. Under
-<code>technology = &quot;wgd&quot;</code> and <code>&quot;envelope&quot;</code> the
-bad-output row is the free-disposal envelope <span class="math inline">\(\sum_{l \in R} \lambda_l b_l \le (1 -
-\beta) b_k\)</span>, with and without the input rows; these exploratory
+<code>technology = &quot;input_envelope&quot;</code> and <code>&quot;envelope&quot;</code>
+the bad-output row is the free-disposal envelope <span class="math inline">\(\sum_{l \in R} \lambda_l b_l \le (1 - \beta)
+b_k\)</span>, with and without the input rows; these exploratory
 variants bound emissions by the peer envelope rather than imposing weak
 disposability.</p>
 </div>

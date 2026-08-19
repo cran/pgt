@@ -1,7 +1,7 @@
 Package: pgt
 Type: Package
 Title: Data Envelopment Analysis for Pollution-Generating Technologies
-Version: 0.5.0
+Version: 0.6.1
 Authors@R: c(
     person("Erik", "Enstad", email = "erik.enstad@nhh.no",
            role = c("aut", "cre"),
@@ -32,8 +32,8 @@ LazyData: true
 URL: https://github.com/iik1/pgt
 BugReports: https://github.com/iik1/pgt/issues
 NeedsCompilation: no
-Packaged: 2026-07-18 10:22:12 UTC; s14454
+Packaged: 2026-08-11 17:38:16 UTC; s14454
 Author: Erik Enstad [aut, cre] (ORCID: <https://orcid.org/0009-0006-1053-3849>)
 Maintainer: Erik Enstad <erik.enstad@nhh.no>
 Repository: CRAN
-Date/Publication: 2026-07-28 15:50:02 UTC
+Date/Publication: 2026-08-19 11:30:02 UTC

@@ -35,7 +35,7 @@ mb <- mb_check(tech2)
 table(subset(as.data.frame(mb), violated)$pollutant)
 
 ## -----------------------------------------------------------------------------
-fit_co2 <- pgt(tech2, model = "wgd", pollutant = "co2")
+fit_co2 <- pgt(tech2, model = "wgd_input_fixed", pollutant = "co2")
 summary(fit_co2)
 
 ## -----------------------------------------------------------------------------
@@ -43,7 +43,7 @@ tech1 <- pgt_tech(
   x = cbind(coal = coal, gas = gas), y = y, b = b_co2, u = u_co2,
   v = 0.1, group = factor(rep(c("A", "B"), each = L / 2))
 )
-fit1 <- pgt(tech1, model = "wgd")
+fit1 <- pgt(tech1, model = "wgd_input_fixed")
 summary(fit1$results$b_star - fit_co2$results$b_star)
 
 ## -----------------------------------------------------------------------------
@@ -59,10 +59,22 @@ tech_het <- pgt_tech(
   b = pmin(b_co2, (2.8 * coal + 1.4 * gas - 0.1 * y) * 0.95),
   u = U_co2, v = 0.1
 )
-fit_het <- pgt(tech_het, model = "wgd")
+fit_het <- pgt(tech_het, model = "wgd_input_fixed")
 median(fit_het$results$efficiency, na.rm = TRUE)
 
 ## -----------------------------------------------------------------------------
-dec <- pgt_decompose(tech2, type = "rodseth", pollutant = "co2")
+dec <- pgt_decompose(tech_het, type = "rodseth")
 summary(dec)
+
+## -----------------------------------------------------------------------------
+y2 <- cbind(power = y, heat = runif(L, 5, 20))
+tech_m <- pgt_tech(
+  x = cbind(coal = coal, gas = gas),
+  y = y2,
+  b = b_co2,
+  u = u_co2,
+  v = c(0.10, 0.05)
+)
+fit_m <- pgt(tech_m, model = "wgd")
+head(fit_m$results, 3)
 

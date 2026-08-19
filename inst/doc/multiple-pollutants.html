@@ -346,8 +346,9 @@ coefficients</h1>
 <p>A technology can carry several pollutants, each with its own
 materials-balance account, and the material flow coefficients can vary
 across units (heterogeneous input quality; Eder 2022, Rødseth 2025).
-This vignette demonstrates both features and the staged decomposition,
-on a small synthetic example.</p>
+This vignette demonstrates multi-pollutant accounts, DMU-specific
+coefficients, several intended outputs and the five-component
+decomposition, on a small synthetic example.</p>
 <div id="a-two-pollutant-technology" class="section level2">
 <h2>A two-pollutant technology</h2>
 <p>Forty plants burn coal and gas. Each fuel carries CO2 potential and
@@ -380,12 +381,13 @@ per pollutant, and <code>v</code> a named vector.</p>
 <span id="cb2-22"><a href="#cb2-22" tabindex="-1"></a>)</span>
 <span id="cb2-23"><a href="#cb2-23" tabindex="-1"></a>tech2</span>
 <span id="cb2-24"><a href="#cb2-24" tabindex="-1"></a><span class="co">#&gt; Pollution-generating technology</span></span>
-<span id="cb2-25"><a href="#cb2-25" tabindex="-1"></a><span class="co">#&gt;   DMUs: 40   inputs: 2   good outputs: 1   bad outputs: 2</span></span>
+<span id="cb2-25"><a href="#cb2-25" tabindex="-1"></a><span class="co">#&gt;   DMUs: 40;  inputs: 2;  good outputs: 1;  bad outputs: 2</span></span>
 <span id="cb2-26"><a href="#cb2-26" tabindex="-1"></a><span class="co">#&gt;   inputs: coal, gas</span></span>
-<span id="cb2-27"><a href="#cb2-27" tabindex="-1"></a><span class="co">#&gt;   material flow coefficients [co2]: u = [2.5, 1.4], v = 0.1</span></span>
-<span id="cb2-28"><a href="#cb2-28" tabindex="-1"></a><span class="co">#&gt;   material flow coefficients [so2]: u = [0.020, 0.001], v = 0</span></span>
+<span id="cb2-27"><a href="#cb2-27" tabindex="-1"></a><span class="co">#&gt;   material flow coefficients [co2]: u = [2.5, 1.4], v = [0.1]</span></span>
+<span id="cb2-28"><a href="#cb2-28" tabindex="-1"></a><span class="co">#&gt;   material flow coefficients [so2]: u = [0.020, 0.001], v = [0]</span></span>
 <span id="cb2-29"><a href="#cb2-29" tabindex="-1"></a><span class="co">#&gt;   groups: A (20), B (20)</span></span>
-<span id="cb2-30"><a href="#cb2-30" tabindex="-1"></a><span class="co">#&gt;   materials balance: 3 of 80 DMU-pollutant accounts violate the identity (see mb_check())</span></span></code></pre></div>
+<span id="cb2-30"><a href="#cb2-30" tabindex="-1"></a><span class="co">#&gt;   materials balance: 3 of 80 accounts violate the identity</span></span>
+<span id="cb2-31"><a href="#cb2-31" tabindex="-1"></a><span class="co">#&gt;     (see mb_check())</span></span></code></pre></div>
 <p><code>mb_check()</code> audits one account per plant and pollutant;
 the three seeded SO2 violations surface immediately.</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>mb <span class="ot">&lt;-</span> <span class="fu">mb_check</span>(tech2)</span>
@@ -394,17 +396,19 @@ the three seeded SO2 violations surface immediately.</p>
 <span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co">#&gt; so2 </span></span>
 <span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="co">#&gt;   3</span></span></code></pre></div>
 </div>
-<div id="every-pollutants-cap-constrains-the-projection" class="section level2">
-<h2>Every pollutant’s cap constrains the projection</h2>
-<p><code>pgt(model = &quot;wgd&quot;)</code> selects one pollutant for the
-objective through <code>pollutant</code>, but the caps of every
-pollutant constrain the peer mix (see
+<div id="every-pollutants-cap-constrains-the-input-fixed-benchmark" class="section level2">
+<h2>Every pollutant’s cap constrains the input-fixed benchmark</h2>
+<p>The faithful <code>&quot;wgd&quot;</code> programme of Eq. 6 uses only the
+selected pollutant’s data. Cross-account discipline lives in the
+input-fixed benchmark: <code>pgt(model = &quot;wgd_input_fixed&quot;)</code>
+selects one pollutant for the objective through <code>pollutant</code>,
+but the caps of every pollutant constrain the peer mix (see
 <code>vignette(&quot;models&quot;, &quot;pgt&quot;)</code> for the collapsed cap rows). A
 peer that looks attractive on CO2 can be unusable because leaning on it
 would breach the evaluated plant’s SO2 account.</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>fit_co2 <span class="ot">&lt;-</span> <span class="fu">pgt</span>(tech2, <span class="at">model =</span> <span class="st">&quot;wgd&quot;</span>, <span class="at">pollutant =</span> <span class="st">&quot;co2&quot;</span>)</span>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>fit_co2 <span class="ot">&lt;-</span> <span class="fu">pgt</span>(tech2, <span class="at">model =</span> <span class="st">&quot;wgd_input_fixed&quot;</span>, <span class="at">pollutant =</span> <span class="st">&quot;co2&quot;</span>)</span>
 <span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="fu">summary</span>(fit_co2)</span>
-<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co">#&gt; pgt fit: model = wgd, returns = vrs, peers = all</span></span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co">#&gt; pgt fit: model = wgd_input_fixed, returns = vrs, peers = all</span></span>
 <span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="co">#&gt;   pollutant: co2</span></span>
 <span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="co">#&gt;   DMUs: 40   failed LPs: 0</span></span>
 <span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="co">#&gt; </span></span>
@@ -423,7 +427,7 @@ loses one set of constraints:</p>
 <span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>  <span class="at">x =</span> <span class="fu">cbind</span>(<span class="at">coal =</span> coal, <span class="at">gas =</span> gas), <span class="at">y =</span> y, <span class="at">b =</span> b_co2, <span class="at">u =</span> u_co2,</span>
 <span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>  <span class="at">v =</span> <span class="fl">0.1</span>, <span class="at">group =</span> <span class="fu">factor</span>(<span class="fu">rep</span>(<span class="fu">c</span>(<span class="st">&quot;A&quot;</span>, <span class="st">&quot;B&quot;</span>), <span class="at">each =</span> L <span class="sc">/</span> <span class="dv">2</span>))</span>
 <span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>)</span>
-<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>fit1 <span class="ot">&lt;-</span> <span class="fu">pgt</span>(tech1, <span class="at">model =</span> <span class="st">&quot;wgd&quot;</span>)</span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>fit1 <span class="ot">&lt;-</span> <span class="fu">pgt</span>(tech1, <span class="at">model =</span> <span class="st">&quot;wgd_input_fixed&quot;</span>)</span>
 <span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a><span class="fu">summary</span>(fit1<span class="sc">$</span>results<span class="sc">$</span>b_star <span class="sc">-</span> fit_co2<span class="sc">$</span>results<span class="sc">$</span>b_star)</span>
 <span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a><span class="co">#&gt;       Min.    1st Qu.     Median       Mean    3rd Qu.       Max. </span></span>
 <span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a><span class="co">#&gt; -1.421e-14  2.842e-14  4.263e-14  8.148e-13  6.573e-14  1.027e-11</span></span></code></pre></div>
@@ -455,38 +459,76 @@ higher-carbon coal.</p>
 <span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>  <span class="at">b =</span> <span class="fu">pmin</span>(b_co2, (<span class="fl">2.8</span> <span class="sc">*</span> coal <span class="sc">+</span> <span class="fl">1.4</span> <span class="sc">*</span> gas <span class="sc">-</span> <span class="fl">0.1</span> <span class="sc">*</span> y) <span class="sc">*</span> <span class="fl">0.95</span>),</span>
 <span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>  <span class="at">u =</span> U_co2, <span class="at">v =</span> <span class="fl">0.1</span></span>
 <span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>)</span>
-<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a>fit_het <span class="ot">&lt;-</span> <span class="fu">pgt</span>(tech_het, <span class="at">model =</span> <span class="st">&quot;wgd&quot;</span>)</span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a>fit_het <span class="ot">&lt;-</span> <span class="fu">pgt</span>(tech_het, <span class="at">model =</span> <span class="st">&quot;wgd_input_fixed&quot;</span>)</span>
 <span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a><span class="fu">median</span>(fit_het<span class="sc">$</span>results<span class="sc">$</span>efficiency, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
 <span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a><span class="co">#&gt; [1] 0.5354456</span></span></code></pre></div>
 <p>Each plant’s cap now uses its own coefficients, so two plants with
-the same fuel bill face different materials-balance ceilings.</p>
+the same fuel bill face different materials-balance ceilings. The input
+coefficients do not enter the reduced form of the faithful
+<code>&quot;wgd&quot;</code> programme (only the output coefficients <span class="math inline">\(v_i\)</span> do); producer-specific <span class="math inline">\(u\)</span> instead surfaces in the
+<code>quality</code> component of the decomposition below.</p>
 </div>
-<div id="the-staged-decomposition" class="section level2">
-<h2>The staged decomposition</h2>
-<p>With a technology group, <code>pgt_decompose(type = &quot;rodseth&quot;)</code>
-decomposes the full weak-G-disposability score in three stages:
-own-group peers (technical efficiency), all peers (technology gap), and
-all peers with the input constraints dropped (input-mix component), an
-exact multiplicative identity for rows with all stages feasible.</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>dec <span class="ot">&lt;-</span> <span class="fu">pgt_decompose</span>(tech2, <span class="at">type =</span> <span class="st">&quot;rodseth&quot;</span>, <span class="at">pollutant =</span> <span class="st">&quot;co2&quot;</span>)</span>
-<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="co">#&gt; Warning: 1 of 40 DMUs have infeasible or failed stage LPs; the affected</span></span>
-<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="co">#&gt; components are NA. This flags DMUs violating a materials-balance identity; run</span></span>
-<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="co">#&gt; mb_check().</span></span>
-<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a><span class="fu">summary</span>(dec)</span>
-<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="co">#&gt; pgt decomposition: type = rodseth, returns = vrs, DMUs = 40</span></span>
-<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a><span class="co">#&gt;   components: te x technology x ae (product = total)</span></span>
-<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a><span class="co">#&gt; Group medians (components, total, attribution shares):</span></span>
-<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a><span class="co">#&gt;  group  n n_na    te technology ae total share_te share_technology  share_ae</span></span>
-<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a><span class="co">#&gt;      A 20    1 0.492      0.929  1 0.464    0.932           0.0578 -2.69e-16</span></span>
-<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a><span class="co">#&gt;      B 20    0 0.691      0.933  1 0.591    0.860           0.0859 -3.03e-16</span></span>
+<div id="the-five-component-decomposition" class="section level2">
+<h2>The five-component decomposition</h2>
+<p><code>pgt_decompose(type = &quot;rodseth&quot;)</code> splits the
+weak-G-disposability score into the five components of Rødseth (2025,
+Eq. 11): production technical efficiency, coefficient quality,
+production allocative efficiency, abatement technical efficiency and
+abatement allocative efficiency (the stage programmes are stated in
+<code>vignette(&quot;models&quot;, &quot;pgt&quot;)</code>). A component collapses to
+exactly 1 when the data cannot separate it. Here no abatement output is
+observed and no pollution-control input is marked, so the two abatement
+components are 1, while the heterogeneous coefficients of
+<code>tech_het</code> activate the quality component.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>dec <span class="ot">&lt;-</span> <span class="fu">pgt_decompose</span>(tech_het, <span class="at">type =</span> <span class="st">&quot;rodseth&quot;</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="fu">summary</span>(dec)</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="co">#&gt; pgt decomposition: type = rodseth, returns = vrs, DMUs = 40</span></span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="co">#&gt;   components: te_production x quality x ae_production x te_abatement x ae_abatement (product = total)</span></span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="co">#&gt; Group medians (components, total, attribution shares):</span></span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a><span class="co">#&gt;  group  n n_na te_production quality ae_production te_abatement ae_abatement</span></span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a><span class="co">#&gt;    all 40    0         0.991       1          0.57            1            1</span></span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a><span class="co">#&gt;  total share_te_production share_quality share_ae_production share_te_abatement</span></span>
+<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a><span class="co">#&gt;  0.524               0.127         0.068               0.719                  0</span></span>
+<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a><span class="co">#&gt;  share_ae_abatement</span></span>
+<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a><span class="co">#&gt;                   0</span></span>
 <span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a><span class="co">#&gt; (share_* are medians of DMU-level shares; they need not sum to 1.</span></span>
 <span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a><span class="co">#&gt;  n_na counts DMUs with any NA component.)</span></span></code></pre></div>
-<p>The caveats of the estimator carry over: a plant violating another
-pollutant’s account can have <code>te</code> and <code>total</code>
-above 1, and infeasible stages return <code>NA</code> (see
-<code>?pgt_decompose</code>).</p>
+<p>The product of the five components equals the <code>&quot;wgd&quot;</code>
+efficiency exactly, and technology groups are not required for this
+type.</p>
+</div>
+<div id="several-intended-outputs" class="section level2">
+<h2>Several intended outputs</h2>
+<p>Good outputs can be a matrix with one named column per output, and
+the retained content becomes <span class="math inline">\(v_i&#39;y_i\)</span> with one coefficient per
+output. Here the plants sell power and process heat, retaining different
+carbon shares per unit, and the programme holds both outputs at the
+evaluated plant’s levels.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>y2 <span class="ot">&lt;-</span> <span class="fu">cbind</span>(<span class="at">power =</span> y, <span class="at">heat =</span> <span class="fu">runif</span>(L, <span class="dv">5</span>, <span class="dv">20</span>))</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>tech_m <span class="ot">&lt;-</span> <span class="fu">pgt_tech</span>(</span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>  <span class="at">x =</span> <span class="fu">cbind</span>(<span class="at">coal =</span> coal, <span class="at">gas =</span> gas),</span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>  <span class="at">y =</span> y2,</span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>  <span class="at">b =</span> b_co2,</span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a>  <span class="at">u =</span> u_co2,</span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a>  <span class="at">v =</span> <span class="fu">c</span>(<span class="fl">0.10</span>, <span class="fl">0.05</span>)</span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a>)</span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a>fit_m <span class="ot">&lt;-</span> <span class="fu">pgt</span>(tech_m, <span class="at">model =</span> <span class="st">&quot;wgd&quot;</span>)</span>
+<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a><span class="fu">head</span>(fit_m<span class="sc">$</span>results, <span class="dv">3</span>)</span>
+<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a><span class="co">#&gt;   id    power      heat         b   b_star efficiency dual_power dual_heat</span></span>
+<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a><span class="co">#&gt; 1  1 32.44812 11.641944 116.49452 53.77858  0.4616405  3.5644553  1.291545</span></span>
+<span id="cb9-13"><a href="#cb9-13" tabindex="-1"></a><span class="co">#&gt; 2  2 19.73716  7.368202 124.30608 42.33774  0.3405926  0.5122657 -0.050000</span></span>
+<span id="cb9-14"><a href="#cb9-14" tabindex="-1"></a><span class="co">#&gt; 3  3 25.77085 11.634870  71.39915 45.21526  0.6332745  0.5122657 -0.050000</span></span>
+<span id="cb9-15"><a href="#cb9-15" tabindex="-1"></a><span class="co">#&gt;   status</span></span>
+<span id="cb9-16"><a href="#cb9-16" tabindex="-1"></a><span class="co">#&gt; 1      0</span></span>
+<span id="cb9-17"><a href="#cb9-17" tabindex="-1"></a><span class="co">#&gt; 2      0</span></span>
+<span id="cb9-18"><a href="#cb9-18" tabindex="-1"></a><span class="co">#&gt; 3      0</span></span></code></pre></div>
+<p>The fit carries one column per output and per-output duals
+(<code>dual_power</code>, <code>dual_heat</code>). Every model except
+<code>&quot;fdmo&quot;</code> handles several outputs; <code>mac_curve()</code>
+needs a single-output fit, while <code>shadow_prices()</code> reports
+every output dual.</p>
 </div>
 <div id="references" class="section level2">
 <h2>References</h2>

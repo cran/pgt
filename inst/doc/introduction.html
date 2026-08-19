@@ -389,9 +389,9 @@ on two production routes, with emissions in CO2 units.</p>
 <span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>)</span>
 <span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>tech</span>
 <span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a><span class="co">#&gt; Pollution-generating technology</span></span>
-<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a><span class="co">#&gt;   DMUs: 180   inputs: 4   good outputs: 1   bad outputs: 1</span></span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a><span class="co">#&gt;   DMUs: 180;  inputs: 4;  good outputs: 1;  bad outputs: 1</span></span>
 <span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a><span class="co">#&gt;   inputs: coal_coke, other_fuel, raw_material, flux</span></span>
-<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a><span class="co">#&gt;   material flow coefficients: u = [1, 1, 1, 1], v = 0.01467</span></span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a><span class="co">#&gt;   material flow coefficients: u = [1, 1, 1, 1], v = [0.01467]</span></span>
 <span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a><span class="co">#&gt;   groups: Integrated (105), Minimill (75)</span></span>
 <span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a><span class="co">#&gt;   materials balance: satisfied for all DMUs</span></span></code></pre></div>
 <p>The inputs already sit in pollutant-potential units, so the default
@@ -402,11 +402,13 @@ the derivation).</p>
 </div>
 <div id="auditing-the-identity-before-estimation" class="section level2">
 <h2>Auditing the identity before estimation</h2>
-<p>The weak-G-disposability model gives every DMU a self-reference (its
-own observation as a feasible solution to its programme) only when its
-own materials balance holds. <code>mb_check()</code> reports the closure
-gap per DMU and flags the accounts where more pollutant leaves than
-enters.</p>
+<p><code>mb_check()</code> reports the closure gap per DMU and flags the
+accounts where more pollutant leaves than enters. The audit is the
+data-quality check behind the materials-balance interpretation of every
+model, and it gates the models that constrain the projection by the
+DMU’s own account: the input-fixed benchmark
+<code>&quot;wgd_input_fixed&quot;</code> and the directional model
+<code>&quot;fdmo&quot;</code>.</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>mb <span class="ot">&lt;-</span> <span class="fu">mb_check</span>(tech)</span>
 <span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">as.data.frame</span>(mb))</span>
 <span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="co">#&gt;     id      group potential retained       b       gap    rel_gap violated</span></span>
@@ -418,16 +420,19 @@ enters.</p>
 <span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="co">#&gt; 6 P002 Integrated   3362598 25968.38 3162682 173948.43 0.05173036    FALSE</span></span>
 <span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="fu">attr</span>(mb, <span class="st">&quot;n_violations&quot;</span>)</span>
 <span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="co">#&gt; [1] 0</span></span></code></pre></div>
-<p>An infeasible weak-G-disposability program always belongs to a DMU
-with a strictly negative gap, so this audit locates any estimation
-problem in advance. Such DMUs return <code>NA</code> scores and
-<code>pgt()</code> warns; all other DMUs score in <span class="math inline">\((0, 1]\)</span>.</p>
+<p>An infeasible <code>&quot;wgd_input_fixed&quot;</code> programme always belongs
+to a DMU with a strictly negative gap, so the audit locates any
+estimation problem in advance; such DMUs return <code>NA</code> scores
+and <code>pgt()</code> warns. The faithful weak-G-disposability
+programme of Eq. 6 is always self-feasible, so its scores lie in <span class="math inline">\((0, 1]\)</span> on any data.</p>
 </div>
 <div id="estimating-environmental-efficiency" class="section level2">
 <h2>Estimating environmental efficiency</h2>
-<p>The weak-G-disposability model minimises the bad output subject to
-output and input feasibility, the peer emission envelope, and the DMU’s
-own materials-balance cap (the programmes are stated in full in
+<p>The weak-G-disposability model of Rødseth (2025, Eq. 6) minimises
+emissions over peer mixes that hold the good output at the DMU’s level,
+pricing any extra good output at the DMU’s retained-content coefficient
+<span class="math inline">\(v\)</span>; the inputs are decision
+variables (the programmes are stated in full in
 <code>vignette(&quot;models&quot;, &quot;pgt&quot;)</code>). The score is <span class="math inline">\(b^*_l / b_l\)</span>.</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">pgt</span>(tech, <span class="at">model =</span> <span class="st">&quot;wgd&quot;</span>)</span>
 <span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="fu">summary</span>(fit)</span>
@@ -441,11 +446,11 @@ own materials-balance cap (the programmes are stated in full in
 <span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="co">#&gt; By group:</span></span>
 <span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a><span class="co">#&gt;       group   n n_na median   mean median_dual_output</span></span>
-<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a><span class="co">#&gt;  Integrated 105    0 0.1784 0.3110             0.4733</span></span>
-<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a><span class="co">#&gt;    Minimill  75    0 0.6273 0.7024             0.3018</span></span></code></pre></div>
-<p>The envelope model frees the inputs and reduces the program to the
-convex lower envelope of the <span class="math inline">\((y, b)\)</span>
-scatter. Its self-reference is always feasible.</p>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a><span class="co">#&gt;  Integrated 105    0 0.1784 0.3086             0.4733</span></span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a><span class="co">#&gt;    Minimill  75    0 0.6273 0.6872             0.3018</span></span></code></pre></div>
+<p>The envelope model drops the retained-content term (the <span class="math inline">\(v = 0\)</span> case) and reduces the programme to
+the convex lower envelope of the <span class="math inline">\((y,
+b)\)</span> scatter.</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>fit_env <span class="ot">&lt;-</span> <span class="fu">pgt</span>(tech, <span class="at">model =</span> <span class="st">&quot;envelope&quot;</span>)</span>
 <span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="fu">summary</span>(fit_env)</span>
 <span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="co">#&gt; pgt fit: model = envelope, returns = vrs, peers = all</span></span>
@@ -476,16 +481,16 @@ value is the marginal cost of abating beyond the DMU’s frontier point.
 The curve therefore ranks DMUs by the shadow price at their projection;
 the area under it is not a total-cost estimate.</p>
 <div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">shadow_prices</span>(fit))</span>
-<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="co">#&gt;     id      group       b   b_star dual_output mb_headroom</span></span>
-<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="co">#&gt; 1 P001 Integrated 4431848 590172.6   0.3017576     4236024</span></span>
-<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a><span class="co">#&gt; 2 P001 Integrated 4810748 643896.2   0.3017576     4257002</span></span>
-<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="co">#&gt; 3 P001 Integrated 4547577 596021.2   0.3017576     4294150</span></span>
-<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a><span class="co">#&gt; 4 P002 Integrated 3452634 578102.7   0.3017576     3239540</span></span>
-<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a><span class="co">#&gt; 5 P002 Integrated 3206835 492624.8   0.3017576     2952674</span></span>
-<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a><span class="co">#&gt; 6 P002 Integrated 3162682 508675.1   0.3017576     2827955</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="co">#&gt;     id      group       b   b_star dual_output</span></span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="co">#&gt; 1 P001 Integrated 4431848 590172.6   0.3017576</span></span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a><span class="co">#&gt; 2 P001 Integrated 4810748 643896.2   0.3017576</span></span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="co">#&gt; 3 P001 Integrated 4547577 596021.2   0.3017576</span></span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a><span class="co">#&gt; 4 P002 Integrated 3452634 578102.7   0.3017576</span></span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a><span class="co">#&gt; 5 P002 Integrated 3206835 492624.8   0.3017576</span></span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a><span class="co">#&gt; 6 P002 Integrated 3162682 508675.1   0.3017576</span></span>
 <span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>mac <span class="ot">&lt;-</span> <span class="fu">mac_curve</span>(fit, <span class="at">price =</span> <span class="dv">550</span>)</span>
 <span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a><span class="fu">plot</span>(mac)</span></code></pre></div>
-<p><img role="img" aria-label="Step curve of marginal abatement cost against cumulative abatement potential" src="data:image/png;base64,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" alt="Step curve of marginal abatement cost against cumulative abatement potential" /></p>
+<p><img role="img" aria-label="Step curve of marginal abatement cost against cumulative abatement potential" src="data:image/png;base64,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" alt="Step curve of marginal abatement cost against cumulative abatement potential" /></p>
 </div>
 <div id="decomposing-across-production-routes" class="section level2">
 <h2>Decomposing across production routes</h2>
@@ -507,6 +512,12 @@ tradition (Battese, Rao and O’Donnell 2004; O’Donnell, Rao and Battese
 <span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a><span class="co">#&gt; (share_* are medians of DMU-level shares; they need not sum to 1.</span></span>
 <span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a><span class="co">#&gt;  n_na counts DMUs with any NA component.)</span></span></code></pre></div>
+<p>The five-component source decomposition of Rødseth (2025, Eq. 11) —
+production and abatement efficiency, coefficient quality and allocative
+components — is available as
+<code>pgt_decompose(tech, type = &quot;rodseth&quot;)</code> and needs no groups;
+the stage programmes are stated in
+<code>vignette(&quot;models&quot;, &quot;pgt&quot;)</code>.</p>
 </div>
 <div id="a-worked-example-on-real-data" class="section level2">
 <h2>A worked example on real data</h2>
@@ -536,15 +547,14 @@ about 0.46 of the active ingredient).</p>
 <span id="cb8-17"><a href="#cb8-17" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb8-18"><a href="#cb8-18" tabindex="-1"></a><span class="co">#&gt; Efficiency (b*/b):</span></span>
 <span id="cb8-19"><a href="#cb8-19" tabindex="-1"></a><span class="co">#&gt;     0%    25%    50%    75%   100% </span></span>
-<span id="cb8-20"><a href="#cb8-20" tabindex="-1"></a><span class="co">#&gt; 0.1341 0.4102 0.5939 1.0000 1.0000</span></span></code></pre></div>
+<span id="cb8-20"><a href="#cb8-20" tabindex="-1"></a><span class="co">#&gt; 0.1341 0.3777 0.5148 0.7235 1.0000</span></span></code></pre></div>
 <p>Here environmental efficiency is the scope to cut fertiliser nitrogen
 while holding rice output at its observed level. One caveat on this
 construction: because the bad output is defined as the full nitrogen
 potential of a single input (<span class="math inline">\(b = u_N
 \cdot\)</span> <code>NPK</code>), every farm’s account closes with
-equality by construction, the materials-balance cap can never bind, and
-<code>mb_check()</code> passes trivially; the example illustrates the
-workflow, not the audit.</p>
+equality by construction and <code>mb_check()</code> passes trivially;
+the example illustrates the workflow, not the audit.</p>
 <p>The other vignettes state the estimating programmes in full
 (<code>vignette(&quot;models&quot;, &quot;pgt&quot;)</code>), reproduce the published-result
 replications (<code>vignette(&quot;replication&quot;, &quot;pgt&quot;)</code>), compare the
