@@ -7,27 +7,34 @@
 mb_check(tech, tol = 1e-08)
 }
 \arguments{
-\item{tech}{A [pgt_tech()] object.}
+\item{tech}{A \code{\link[=pgt_tech]{pgt_tech()}} object.}
 
 \item{tol}{Relative tolerance: a DMU-pollutant account is flagged
 (\code{violated}) when its closure gap is below \code{-tol} times
 its pollutant potential \eqn{u'x_l}. The flag is a data-quality
 screen; LP infeasibility tracks the exact sign of the gap, so the
 flagged set is a subset of the accounts with \code{gap < 0}
-(counted separately in attribute \code{"n_negative"}).}
+(counted separately in attribute \code{"n_negative"}). An account
+with zero pollutant potential always has a negative gap (strictly
+positive \code{b}); \code{rel_gap} divides by the potential
+floored at machine epsilon, so it is reported as a large but
+finite negative number rather than \code{-Inf}, and the account is
+flagged whenever \code{b} exceeds \code{tol} times machine
+epsilon.}
 }
 \value{
 A data frame of class \code{"pgt_mb"} with one row per DMU
-  (per pollutant when several are present): \code{id}, \code{group}
-  (if present), \code{pollutant} (when several), \code{potential}
-  (\eqn{u'x_l}), \code{retained} (\eqn{v'y_l}), \code{b}, \code{gap}
-  (\eqn{u'x_l - v'y_l - b_l}), \code{rel_gap} (\code{gap / potential})
-  and \code{violated}. When the technology records an abatement
-  output, also \code{a} and \code{closure} (\eqn{gap - a_l}): the
-  equality residual \eqn{u'x_l - v'y_l - b_l - a_l}, zero when the
-  account closes exactly, which \code{model = "fdmo"} requires. The
-  number of violations is attached as attribute
-  \code{"n_violations"}.
+(per pollutant when several are present): \code{id}, \code{group}
+(if present), \code{pollutant} (when several), \code{potential}
+(\eqn{u'x_l}), \code{retained} (\eqn{v'y_l}), \code{b}, \code{gap}
+(\eqn{u'x_l - v'y_l - b_l}), \code{rel_gap} (\code{gap / potential},
+the denominator floored at machine epsilon)
+and \code{violated}. When the technology records an abatement
+output, also \code{a} and \code{closure} (\eqn{gap - a_l}): the
+equality residual \eqn{u'x_l - v'y_l - b_l - a_l}, zero when the
+account closes exactly, which \code{model = "fdmo"} requires. The
+number of violations is attached as attribute
+\code{"n_violations"}.
 }
 \description{
 Pre-estimation feasibility audit of the materials-balance condition
@@ -35,13 +42,13 @@ Pre-estimation feasibility audit of the materials-balance condition
 that violate the identity carry inconsistent material accounts (more
 pollutant leaves than enters). A violation makes self-reference
 infeasible in the input-fixed \code{"wgd_input_fixed"} programme of
-[pgt()], so that DMU's LP solves only if some peer mix meets every
+\code{\link[=pgt]{pgt()}}, so that DMU's LP solves only if some peer mix meets every
 constraint within its materials-balance cap; conversely,
 infeasibility is confined to DMUs with an exact violation,
 \code{gap < 0}, in at least one pollutant account (pollutant
 \eqn{p}'s LP can be infeasible because of a violation in a different
 pollutant \eqn{q}; DMUs satisfying every account always solve via
-self-reference). The faithful \code{"wgd"} programme is always
+self-reference). The reduced-form \code{"wgd"} programme is always
 self-feasible, so its scores carry no feasibility screen; the audit
 remains the data-quality check behind its materials-balance
 interpretation. Audit before estimation.
@@ -49,10 +56,13 @@ interpretation. Audit before estimation.
 \examples{
 data(steeldemo)
 tech <- pgt_tech(
-  x = steeldemo[, c("coal_coke", "other_fuel", "raw_material", "flux")],
+  x = steeldemo[, c("coal_coke", "other_fuel", "raw_material", "flux",
+                    "capture_energy")],
   y = steeldemo$production,
   b = steeldemo$emissions,
+  a = steeldemo$captured,
   v = 0.01467,
+  x_abate = "capture_energy",
   group = steeldemo$route,
   id = steeldemo$plant
 )
@@ -60,5 +70,5 @@ mb <- mb_check(tech)
 mb
 }
 \seealso{
-[pgt_tech()], [pgt()]
+\code{\link[=pgt_tech]{pgt_tech()}}, \code{\link[=pgt]{pgt()}}
 }

@@ -12,7 +12,7 @@ pgt_ml(
 )
 }
 \arguments{
-\item{tech}{A [pgt_tech()] object with a non-\code{NULL} \code{period}
+\item{tech}{A \code{\link[=pgt_tech]{pgt_tech()}} object with a non-\code{NULL} \code{period}
 and \code{id} identifying the same DMU across periods. The index
 is defined for a single good output.}
 
@@ -31,10 +31,10 @@ index. Defaults to the first.}
 }
 \value{
 An object of class \code{"pgt_ml"}: a list with
-  \code{results}, a data frame with one row per DMU per consecutive
-  period transition (\code{id}, \code{from}, \code{to}, \code{gml},
-  \code{ec}, \code{bpc}), and the call settings. Transitions are
-  formed only for DMUs present in both adjacent periods.
+\code{results}, a data frame with one row per DMU per consecutive
+period transition (\code{id}, \code{from}, \code{to}, \code{gml},
+\code{ec}, \code{bpc}), and the call settings. Transitions are
+formed only for DMUs present in both adjacent periods.
 }
 \description{
 Computes the global Malmquist-Luenberger (GML) productivity index of
@@ -69,12 +69,12 @@ default) imposes weak disposability of the bad output (the Kuosmanen
 an abatement part): this is the technology under which Chung, Fare
 and Grosskopf (1997) and Oh (2010) define the (global)
 Malmquist-Luenberger index, so \code{technology = "wd"} is the
-faithful Oh (2010) comparator. \code{"input_envelope"} and
+comparator defined by Oh (2010). \code{"input_envelope"} and
 \code{"envelope"} instead treat the bad output as reducible down to
 the peer emission envelope with no proportional output sacrifice,
 with (\code{"input_envelope"}) and without (\code{"envelope"}) the
 input rows; the input-keeping variant mirrors the input-fixed
-\code{"wgd_input_fixed"} shape of [pgt()] rather than the
+\code{"wgd_input_fixed"} shape of \code{\link[=pgt]{pgt()}} rather than the
 input-free Eq. 6 programme. Under constant returns
 the free-disposal technologies contain the weak-disposability set,
 so their distances are weakly larger than under \code{"wd"}; under
@@ -123,5 +123,5 @@ Journal of Operational Research}, 229(3), 738--742.
 \doi{10.1016/j.ejor.2013.03.031}
 }
 \seealso{
-[pgt()], [pgt_tech()]
+\code{\link[=pgt]{pgt()}}, \code{\link[=pgt_tech]{pgt_tech()}}
 }

@@ -274,14 +274,13 @@ in the data does not affect the programme (the audit in
 abatement output is observed the optimal peer mix also delivers the
 projection’s implied uncontrolled emission <span class="math inline">\(z^* = \sum_l \lambda_l z_l\)</span>, with <span class="math inline">\(z_l = u_l&#39;x_l - v_l&#39;y_l\)</span> the
 peer’s materials-balance cap (equal to <span class="math inline">\(b_l +
-a_l\)</span> when the peer’s account closes), and abatement <span class="math inline">\(a^* = \sum_l \lambda_l a_l\)</span>. Faithfulness
-to the paper is exercised numerically: the programme reproduces the
-Table 2 minima of Rødseth (2025) and agrees with an independent
-reference implementation in the test suite. The reported output duals
-are the total derivatives <span class="math inline">\(\partial
-b^*_i/\partial y_{mi} = \mu_m - v_{mi}\)</span>, which can be negative
-when the retained content is large: producing more output binds more
-pollutant into the product.</p>
+a_l\)</span> when the peer’s account closes), and abatement <span class="math inline">\(a^* = \sum_l \lambda_l a_l\)</span>.
+Correspondence to the paper is exercised numerically: the programme
+reproduces the Table 2 minima of Rødseth (2025) and agrees with an
+independent reference implementation in the test suite. The reported
+output duals are the total derivatives <span class="math inline">\(\partial b^*_i/\partial y_{mi} = \mu_m -
+v_{mi}\)</span>, which can be negative when the retained content is
+large: producing more output binds more pollutant into the product.</p>
 </div>
 <div id="the-input-fixed-benchmark-model-wgd_input_fixed" class="section level2">
 <h2>The input-fixed benchmark
@@ -336,8 +335,9 @@ pollutant. Self-reference is always feasible, so every score lies in
 <div id="the-directional-representation-model-fdmo" class="section level2">
 <h2>The directional representation (<code>model = &quot;fdmo&quot;</code>)</h2>
 <p>The factorially determined multi-output form of Rødseth (2025, Eq.
-13), with the abatement output <span class="math inline">\(a\)</span>
-held at the evaluated unit’s own level: <span class="math display">\[
+14), which his Proposition 4 derives from Eq. 13 by holding the
+abatement output <span class="math inline">\(a\)</span> at the evaluated
+unit’s own level: <span class="math display">\[
 \begin{aligned}
 \max_{\lambda,\, \theta_y,\, \theta_b}\quad &amp; \theta_y + \theta_b \\
 \text{s.t.}\quad
@@ -442,9 +442,10 @@ E_2 = \min\{\psi :\ \textstyle\sum_l \mu_l b_l \le \psi b_i,\ \sum_l
 1\}.
 \]</span> <span class="math inline">\(E_2\)</span> is the principal
 environmental efficiency; <code>mean_eff</code> is the arithmetic mean
-<span class="math inline">\((E_1 + E_2)/2\)</span>, in the spirit of the
-Färe-Grosskopf-Lovell graph measure. If either sub-programme fails,
-every score of that unit is <code>NA</code>.</p>
+<span class="math inline">\((E_1 + E_2)/2\)</span>, a package summary in
+the spirit of, but not identical to, the Färe-Grosskopf-Lovell graph
+measure, and not a measure defined in the source. If either
+sub-programme fails, every score of that unit is <code>NA</code>.</p>
 </div>
 <div id="weak-disposability-model-wd" class="section level2">
 <h2>Weak disposability (<code>model = &quot;wd&quot;</code>)</h2>

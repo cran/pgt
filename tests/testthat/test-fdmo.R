@@ -1,6 +1,6 @@
 # Rodseth (2025) Table 3: the factorially determined multi-output
-# (directional) representation, Eq. 13 with abatement fixed at each
-# DMU's own level, applied to the Table 1 pig-finishing example.
+# (directional) representation, Eq. 14 (Eq. 13 with abatement fixed at
+# each DMU's own level), applied to the Table 1 pig-finishing example.
 #
 # The evaluated DMU's uncontrolled emission is z_i = u_i'x_i - v y_i, and
 # equals the data's `uncontrolled` column by definition. The good-output
@@ -97,4 +97,20 @@ test_that("fdmo warns when material accounts do not close exactly", {
   )
   w <- capture_warnings(pgt(tech, model = "fdmo"))
   expect_true(any(grepl("close the materials-balance identity", w)))
+})
+
+test_that("fdmo solves every steeldemo row with capture_energy as control input", {
+  data(steeldemo)
+  tech <- pgt_tech(
+    x = steeldemo[, c("coal_coke", "other_fuel", "raw_material", "flux",
+                      "capture_energy")],
+    y = steeldemo$production, b = steeldemo$emissions,
+    a = steeldemo$captured, v = 0.01467, x_abate = "capture_energy",
+    group = steeldemo$route, id = steeldemo$plant
+  )
+  # the identity closes exactly, so no row may be infeasible; tonne
+  # magnitudes are solved on the unit-magnitude copy of the technology
+  r <- pgt(tech, model = "fdmo")$results
+  expect_true(all(r$status == 0))
+  expect_equal(r$bad_eff, 0.01467 * r$good_eff, tolerance = 1e-6)
 })

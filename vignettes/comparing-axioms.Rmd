@@ -30,11 +30,14 @@ result that holds under one system need not hold under another. `pgt`
 implements the competing systems on one data object and reports how far
 their conclusions agree.
 
-The models split into two families. The materials-balance models enforce
-$u'x_l - v y_l \ge b_l$:
+The models split into two families. The materials-balance models are
+built on the account $u'x_l - v y_l \ge b_l$, which enters each
+programme differently:
 
-- `wgd`: weak-G-disposability (Rødseth 2025).
+- `wgd`: weak-G-disposability (Rødseth 2025), where the account enters
+  only as a valuation of retained output content in the objective.
 - `mb_cost`: the materials-balance cost model (Coelli et al. 2007),
+  where the flow coefficients act as a price system on the inputs,
   reporting the technical and environmental-allocative components of
   $EE = TE \times EAE$.
 
@@ -54,10 +57,13 @@ package.
 ```{r}
 data(steeldemo)
 tech <- pgt_tech(
-  x = steeldemo[, c("coal_coke", "other_fuel", "raw_material", "flux")],
+  x = steeldemo[, c("coal_coke", "other_fuel", "raw_material", "flux",
+                    "capture_energy")],
   y = steeldemo$production,
   b = steeldemo$emissions,
+  a = steeldemo$captured,
   v = 0.01467,
+  x_abate = "capture_energy",
   group = steeldemo$route,
   id = steeldemo$plant
 )

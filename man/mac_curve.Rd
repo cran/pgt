@@ -7,21 +7,21 @@
 mac_curve(fit, price = NULL)
 }
 \arguments{
-\item{fit}{A [pgt()] fit with \code{model = "wgd"},
+\item{fit}{A \code{\link[=pgt]{pgt()}} fit with \code{model = "wgd"},
 \code{"wgd_input_fixed"} or \code{"envelope"}, the models that report
 output duals. The fit must have a single intended output; with
-several, the per-output duals are in [shadow_prices()].}
+several, the per-output duals are in \code{\link[=shadow_prices]{shadow_prices()}}.}
 
 \item{price}{Optional scalar price of the good output. If supplied,
 \code{mac} is in money per unit of bad output.}
 }
 \value{
 A data frame of class \code{"pgt_mac"}, ordered by
-  \code{mac}: \code{id}, \code{group} (if present), \code{mac},
-  \code{abatement} (\eqn{b - b^*}) and \code{cum_abatement}.
+\code{mac}: \code{id}, \code{group} (if present), \code{mac},
+\code{abatement} (\eqn{b - b^*}) and \code{cum_abatement}.
 }
 \description{
-Builds a marginal abatement cost (MAC) curve from a [pgt()] fit.
+Builds a marginal abatement cost (MAC) curve from a \code{\link[=pgt]{pgt()}} fit.
 Along the estimated frontier, reducing the bad output by one unit
 requires forgoing \eqn{1 / \eta_l} units of the good output, where
 \eqn{\eta_l = \partial b^* / \partial y} is the output-constraint
@@ -63,10 +63,13 @@ platforms. Frontier-interior projections have unique duals.
 \examples{
 data(steeldemo)
 tech <- pgt_tech(
-  x = steeldemo[, c("coal_coke", "other_fuel", "raw_material", "flux")],
+  x = steeldemo[, c("coal_coke", "other_fuel", "raw_material", "flux",
+                    "capture_energy")],
   y = steeldemo$production,
   b = steeldemo$emissions,
+  a = steeldemo$captured,
   v = 0.01467,
+  x_abate = "capture_energy",
   group = steeldemo$route,
   id = steeldemo$plant
 )
@@ -86,5 +89,5 @@ applications. \emph{Journal of Productivity Analysis}, 64(3),
 305--319. \doi{10.1007/s11123-025-00768-0}
 }
 \seealso{
-[pgt()], [shadow_prices()]
+\code{\link[=pgt]{pgt()}}, \code{\link[=shadow_prices]{shadow_prices()}}
 }

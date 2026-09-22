@@ -4,9 +4,10 @@
 # together with the peer weights and selected constraint duals.
 #
 # Formulations follow Rodseth (2025, JPA): Eq. 6 in reduced form for the
-# weak-G-disposability model and Eq. 13 (abatement fixed at the evaluated
-# DMU's own level) for the factorially determined multi-output /
-# directional representation. The unit tests replicate the paper's
+# weak-G-disposability model and Eq. 14 (the factorially determined
+# multi-output form that Proposition 4 derives from Eq. 13 by fixing
+# abatement at the evaluated DMU's own level) for the directional
+# representation. The unit tests replicate the paper's
 # numerical example (Tables 2-3) through these kernels.
 #
 # Material flow coefficients are DMU-specific (one row of the L x N x P
@@ -195,8 +196,8 @@
 }
 
 # Factorially determined multi-output / directional model (Rodseth 2025,
-# Eq. 13 with abatement fixed at the evaluated DMU's own level a_i, the
-# specification that yields the paper's Table 3). Pollutant p.
+# Eq. 14: Eq. 13 with abatement fixed at the evaluated DMU's own level
+# a_i, the specification that yields the paper's Table 3). Pollutant p.
 #
 #   max_{lambda, thy, thb} thy + thb
 #   s.t. sum_l lambda_l y_l  - thy        >= y_i           (good output)
@@ -470,6 +471,32 @@
   z <- lpSolveAPI::get.variables(lp)[seq_len(L)]
   list(status = status, b_star = phi * b[i], lambda = z,
        dual_output = NA_real_, mb_rhs = NA_real_)
+}
+
+# Every programme in this file is homogeneous of degree one in the
+# quantities (x, y, b, a): dividing them by a common scale leaves the
+# intensity weights, the ratio scores and the output duals unchanged
+# and multiplies the level-valued results by the scale. lp_solve's
+# default scaling can fail, or stop at a suboptimal vertex with status
+# 0, when tonne-magnitude rows (1e6-1e8) meet the unit VRS row, so the
+# fitting functions solve every kernel on a copy of the technology
+# scaled to unit magnitude and scale the levels back with
+# .unscale_sol().
+.scale_tech <- function(tech) {
+  s <- max(c(tech$x, tech$y, tech$b, tech$a))
+  if (!is.finite(s) || s <= 0) s <- 1
+  tech$x <- tech$x / s
+  tech$y <- tech$y / s
+  tech$b <- tech$b / s
+  if (!is.null(tech$a)) tech$a <- tech$a / s
+  list(tech = tech, s = s)
+}
+.unscale_sol <- function(sol, s) {
+  for (f in c("b_star", "z_star", "a_star", "mb_rhs", "gross",
+              "theta_y", "theta_b", "rho")) {
+    if (!is.null(sol[[f]])) sol[[f]] <- sol[[f]] * s
+  }
+  sol
 }
 
 # DMU-invariant quantities of a per-DMU solve loop, computed once per

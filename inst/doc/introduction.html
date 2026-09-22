@@ -370,35 +370,50 @@ technologies have been modelled in nonparametric benchmarking since.</p>
 data (the Seiford and Zhu 2002 translation in <code>deaR</code>) or by
 imposing weak disposability and directional distances
 (<code>nonparaeff</code>, <code>Benchmarking</code>). Neither approach
-enforces the materials balance as a constraint. <code>pgt</code> does,
-and puts the competing axiom systems behind one interface.</p>
+carries a materials-balance account. <code>pgt</code> audits the account
+before estimation, lets it enter the estimators as a cap, an equality, a
+price system or an objective valuation depending on the model, and puts
+the competing axiom systems behind one interface.</p>
 </div>
 <div id="building-a-technology" class="section level2">
 <h2>Building a technology</h2>
 <p>The constructor bundles the data with the flow coefficients. The
 shipped <code>steeldemo</code> data is a synthetic panel of steel plants
-on two production routes, with emissions in CO2 units.</p>
+on two production routes, with emissions in CO2 units, an observed
+abatement output (CO2 captured by carbon capture and storage, capture
+for utilisation, or slag mineralisation at the plants that run them) and
+the CO2 potential of the energy the capture consumes as a
+pollution-control input.</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">data</span>(steeldemo)</span>
 <span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>tech <span class="ot">&lt;-</span> <span class="fu">pgt_tech</span>(</span>
-<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>  <span class="at">x =</span> steeldemo[, <span class="fu">c</span>(<span class="st">&quot;coal_coke&quot;</span>, <span class="st">&quot;other_fuel&quot;</span>, <span class="st">&quot;raw_material&quot;</span>, <span class="st">&quot;flux&quot;</span>)],</span>
-<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>  <span class="at">y =</span> steeldemo<span class="sc">$</span>production,</span>
-<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>  <span class="at">b =</span> steeldemo<span class="sc">$</span>emissions,</span>
-<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>  <span class="at">v =</span> <span class="fl">0.01467</span>,</span>
-<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>  <span class="at">group =</span> steeldemo<span class="sc">$</span>route,</span>
-<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>  <span class="at">id =</span> steeldemo<span class="sc">$</span>plant</span>
-<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>)</span>
-<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>tech</span>
-<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a><span class="co">#&gt; Pollution-generating technology</span></span>
-<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a><span class="co">#&gt;   DMUs: 180;  inputs: 4;  good outputs: 1;  bad outputs: 1</span></span>
-<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a><span class="co">#&gt;   inputs: coal_coke, other_fuel, raw_material, flux</span></span>
-<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a><span class="co">#&gt;   material flow coefficients: u = [1, 1, 1, 1], v = [0.01467]</span></span>
-<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a><span class="co">#&gt;   groups: Integrated (105), Minimill (75)</span></span>
-<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a><span class="co">#&gt;   materials balance: satisfied for all DMUs</span></span></code></pre></div>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>  <span class="at">x =</span> steeldemo[, <span class="fu">c</span>(<span class="st">&quot;coal_coke&quot;</span>, <span class="st">&quot;other_fuel&quot;</span>, <span class="st">&quot;raw_material&quot;</span>, <span class="st">&quot;flux&quot;</span>,</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>                    <span class="st">&quot;capture_energy&quot;</span>)],</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>  <span class="at">y =</span> steeldemo<span class="sc">$</span>production,</span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>  <span class="at">b =</span> steeldemo<span class="sc">$</span>emissions,</span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>  <span class="at">a =</span> steeldemo<span class="sc">$</span>captured,</span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>  <span class="at">v =</span> <span class="fl">0.01467</span>,</span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>  <span class="at">x_abate =</span> <span class="st">&quot;capture_energy&quot;</span>,</span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>  <span class="at">group =</span> steeldemo<span class="sc">$</span>route,</span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>  <span class="at">id =</span> steeldemo<span class="sc">$</span>plant</span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a>)</span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a>tech</span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a><span class="co">#&gt; Pollution-generating technology</span></span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a><span class="co">#&gt;   DMUs: 180;  inputs: 5;  good outputs: 1;  bad outputs: 1</span></span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a><span class="co">#&gt;   inputs: coal_coke, other_fuel, raw_material, flux, capture_energy</span></span>
+<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a><span class="co">#&gt;   pollution-control inputs: capture_energy</span></span>
+<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a><span class="co">#&gt;   material flow coefficients: u = [1, 1, 1, 1, 1], v = [0.01467]</span></span>
+<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a><span class="co">#&gt;   abatement output: observed</span></span>
+<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a><span class="co">#&gt;   groups: Integrated (105), Minimill (75)</span></span>
+<span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a><span class="co">#&gt;   materials balance: satisfied for all DMUs</span></span></code></pre></div>
 <p>The inputs already sit in pollutant-potential units, so the default
 <span class="math inline">\(u = 1\)</span> applies to each;
 <code>v = 0.01467</code> is the carbon retained per unit of crude steel
 (the synthetic generator’s assumption; see <code>?steeldemo</code> for
-the derivation).</p>
+the derivation). <code>captured</code> fills the abatement slot
+<code>a</code>, and <code>x_abate</code> marks
+<code>capture_energy</code> as the pollution-control input, which the
+five-component decomposition below frees in its own stage while every
+estimator treats it like any other input.</p>
 </div>
 <div id="auditing-the-identity-before-estimation" class="section level2">
 <h2>Auditing the identity before estimation</h2>
@@ -411,20 +426,25 @@ DMU’s own account: the input-fixed benchmark
 <code>&quot;fdmo&quot;</code>.</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>mb <span class="ot">&lt;-</span> <span class="fu">mb_check</span>(tech)</span>
 <span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">as.data.frame</span>(mb))</span>
-<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="co">#&gt;     id      group potential retained       b       gap    rel_gap violated</span></span>
-<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co">#&gt; 1 P001 Integrated   4856127 29930.40 4431848 394348.99 0.08120648    FALSE</span></span>
-<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="co">#&gt; 2 P001 Integrated   4933440 32542.19 4810748  90149.86 0.01827322    FALSE</span></span>
-<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="co">#&gt; 3 P001 Integrated   4920386 30214.73 4547577 342594.99 0.06962766    FALSE</span></span>
-<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="co">#&gt; 4 P002 Integrated   3846987 29343.62 3452634 365009.38 0.09488189    FALSE</span></span>
-<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="co">#&gt; 5 P002 Integrated   3470487 25188.10 3206835 238464.15 0.06871201    FALSE</span></span>
-<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="co">#&gt; 6 P002 Integrated   3362598 25968.38 3162682 173948.43 0.05173036    FALSE</span></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="co">#&gt;     id      group potential retained       b gap rel_gap violated a closure</span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co">#&gt; 1 P001 Integrated   5350250 33605.04 5316645   0       0    FALSE 0       0</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="co">#&gt; 2 P001 Integrated   4528353 29414.52 4498938   0       0    FALSE 0       0</span></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="co">#&gt; 3 P001 Integrated   4234863 28338.29 4206524   0       0    FALSE 0       0</span></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="co">#&gt; 4 P002 Integrated   3629719 28435.22 3601283   0       0    FALSE 0       0</span></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="co">#&gt; 5 P002 Integrated   3896048 30063.50 3865984   0       0    FALSE 0       0</span></span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="co">#&gt; 6 P002 Integrated   3933817 30179.46 3903637   0       0    FALSE 0       0</span></span>
 <span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="fu">attr</span>(mb, <span class="st">&quot;n_violations&quot;</span>)</span>
 <span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="co">#&gt; [1] 0</span></span></code></pre></div>
+<p>With the abatement output observed, the audit also reports the
+closure of the full identity <span class="math inline">\(u&#39;x - v y =
+b + a\)</span> (the <code>closure</code> column), which is exact on this
+panel: every tonne of CO2 potential is accounted for by the product, the
+emission or the captured stream.</p>
 <p>An infeasible <code>&quot;wgd_input_fixed&quot;</code> programme always belongs
 to a DMU with a strictly negative gap, so the audit locates any
 estimation problem in advance; such DMUs return <code>NA</code> scores
-and <code>pgt()</code> warns. The faithful weak-G-disposability
-programme of Eq. 6 is always self-feasible, so its scores lie in <span class="math inline">\((0, 1]\)</span> on any data.</p>
+and <code>pgt()</code> warns. The weak-G-disposability programme of Eq.
+6 is always self-feasible, so its scores lie in <span class="math inline">\((0, 1]\)</span> on any data.</p>
 </div>
 <div id="estimating-environmental-efficiency" class="section level2">
 <h2>Estimating environmental efficiency</h2>
@@ -442,12 +462,12 @@ variables (the programmes are stated in full in
 <span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="co">#&gt; Efficiency (b*/b):</span></span>
 <span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="co">#&gt;     0%    25%    50%    75%   100% </span></span>
-<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="co">#&gt; 0.1269 0.1639 0.4850 0.7122 1.0000 </span></span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="co">#&gt; 0.1056 0.1449 0.4402 0.6720 1.0000 </span></span>
 <span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="co">#&gt; By group:</span></span>
 <span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a><span class="co">#&gt;       group   n n_na median   mean median_dual_output</span></span>
-<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a><span class="co">#&gt;  Integrated 105    0 0.1784 0.3086             0.4733</span></span>
-<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a><span class="co">#&gt;    Minimill  75    0 0.6273 0.6872             0.3018</span></span></code></pre></div>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a><span class="co">#&gt;  Integrated 105    0 0.1566 0.2543             0.6921</span></span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a><span class="co">#&gt;    Minimill  75    0 0.6489 0.6607             0.2417</span></span></code></pre></div>
 <p>The envelope model drops the retained-content term (the <span class="math inline">\(v = 0\)</span> case) and reduces the programme to
 the convex lower envelope of the <span class="math inline">\((y,
 b)\)</span> scatter.</p>
@@ -459,12 +479,32 @@ b)\)</span> scatter.</p>
 <span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a><span class="co">#&gt; Efficiency (b*/b):</span></span>
 <span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a><span class="co">#&gt;     0%    25%    50%    75%   100% </span></span>
-<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a><span class="co">#&gt; 0.1269 0.1639 0.4850 0.7122 1.0000 </span></span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a><span class="co">#&gt; 0.1056 0.1449 0.4402 0.6720 1.0000 </span></span>
 <span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a><span class="co">#&gt; By group:</span></span>
 <span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a><span class="co">#&gt;       group   n n_na median   mean median_dual_output</span></span>
-<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a><span class="co">#&gt;  Integrated 105    0 0.1784 0.3086             0.4733</span></span>
-<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a><span class="co">#&gt;    Minimill  75    0 0.6273 0.6871             0.3018</span></span></code></pre></div>
+<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a><span class="co">#&gt;  Integrated 105    0 0.1566 0.2543             0.6921</span></span>
+<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a><span class="co">#&gt;    Minimill  75    0 0.6489 0.6606             0.2417</span></span></code></pre></div>
+<p>The directional representation of Rødseth (2025, Eq. 14) needs the
+closed account and holds abatement at the DMU’s own level; it expands
+the good output and contracts the bad output jointly, so its scores are
+in output units rather than ratios, and the materials-balance row ties
+the two together as <span class="math inline">\(\theta_b =
+v\,\theta_y\)</span>.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>fit_dir <span class="ot">&lt;-</span> <span class="fu">pgt</span>(tech, <span class="at">model =</span> <span class="st">&quot;fdmo&quot;</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="fu">summary</span>(fit_dir)</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="co">#&gt; pgt fit: model = fdmo, returns = vrs, peers = all</span></span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a><span class="co">#&gt;   pollutant: b</span></span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="co">#&gt;   DMUs: 180   failed LPs: 0</span></span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a><span class="co">#&gt; Gross inefficiency (theta_y + theta_b):</span></span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a><span class="co">#&gt;        0%       25%       50%       75%      100% </span></span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a><span class="co">#&gt;       0.0       0.0  396565.8  706019.7 1554459.8 </span></span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a><span class="co">#&gt; By group:</span></span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a><span class="co">#&gt;       group   n n_na median   mean median_good median_bad</span></span>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="co">#&gt;  Integrated 105    0 607786 602699      598999       8787</span></span>
+<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a><span class="co">#&gt;    Minimill  75    0 135782 221199      133818       1963</span></span></code></pre></div>
 </div>
 <div id="shadow-prices-and-abatement-cost" class="section level2">
 <h2>Shadow prices and abatement cost</h2>
@@ -480,17 +520,17 @@ model itself prices at zero output loss, while the <code>mac</code>
 value is the marginal cost of abating beyond the DMU’s frontier point.
 The curve therefore ranks DMUs by the shadow price at their projection;
 the area under it is not a total-cost estimate.</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">shadow_prices</span>(fit))</span>
-<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="co">#&gt;     id      group       b   b_star dual_output</span></span>
-<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="co">#&gt; 1 P001 Integrated 4431848 590172.6   0.3017576</span></span>
-<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a><span class="co">#&gt; 2 P001 Integrated 4810748 643896.2   0.3017576</span></span>
-<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="co">#&gt; 3 P001 Integrated 4547577 596021.2   0.3017576</span></span>
-<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a><span class="co">#&gt; 4 P002 Integrated 3452634 578102.7   0.3017576</span></span>
-<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a><span class="co">#&gt; 5 P002 Integrated 3206835 492624.8   0.3017576</span></span>
-<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a><span class="co">#&gt; 6 P002 Integrated 3162682 508675.1   0.3017576</span></span>
-<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>mac <span class="ot">&lt;-</span> <span class="fu">mac_curve</span>(fit, <span class="at">price =</span> <span class="dv">550</span>)</span>
-<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a><span class="fu">plot</span>(mac)</span></code></pre></div>
-<p><img role="img" aria-label="Step curve of marginal abatement cost against cumulative abatement potential" src="data:image/png;base64,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" alt="Step curve of marginal abatement cost against cumulative abatement potential" /></p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">shadow_prices</span>(fit))</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="co">#&gt;     id      group       b   b_star dual_output</span></span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="co">#&gt; 1 P001 Integrated 5316645 602998.0   0.2774621</span></span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="co">#&gt; 2 P001 Integrated 4498938 523740.4   0.2774621</span></span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a><span class="co">#&gt; 3 P001 Integrated 4206524 503385.0   0.2774621</span></span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a><span class="co">#&gt; 4 P002 Integrated 3601283 505218.3   0.2774621</span></span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a><span class="co">#&gt; 5 P002 Integrated 3865984 536014.9   0.2774621</span></span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a><span class="co">#&gt; 6 P002 Integrated 3903637 538208.1   0.2774621</span></span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a>mac <span class="ot">&lt;-</span> <span class="fu">mac_curve</span>(fit, <span class="at">price =</span> <span class="dv">550</span>)</span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a><span class="fu">plot</span>(mac)</span></code></pre></div>
+<p><img role="img" aria-label="Step curve of marginal abatement cost against cumulative abatement potential" src="data:image/png;base64,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" alt="Step curve of marginal abatement cost against cumulative abatement potential" /></p>
 </div>
 <div id="decomposing-across-production-routes" class="section level2">
 <h2>Decomposing across production routes</h2>
@@ -500,24 +540,76 @@ component. The envelope decomposition is an exact identity, Total <span class="m
 reallocation and TGR the technology-gap ratio of the metafrontier
 tradition (Battese, Rao and O’Donnell 2004; O’Donnell, Rao and Battese
 2008).</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>dec <span class="ot">&lt;-</span> <span class="fu">pgt_decompose</span>(tech, <span class="at">type =</span> <span class="st">&quot;envelope&quot;</span>)</span>
-<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="fu">summary</span>(dec)</span>
-<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="co">#&gt; pgt decomposition: type = envelope, returns = vrs, DMUs = 180</span></span>
-<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="co">#&gt;   components: WR x TGR (product = total)</span></span>
-<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a><span class="co">#&gt; Group medians (components, total, attribution shares):</span></span>
-<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a><span class="co">#&gt;       group   n n_na    WR  TGR total share_WR share_TGR</span></span>
-<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a><span class="co">#&gt;  Integrated 105    0 0.804 0.21 0.178    0.285     0.715</span></span>
-<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a><span class="co">#&gt;    Minimill  75    0 0.627 1.00 0.627    1.000     0.000</span></span>
-<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a><span class="co">#&gt; (share_* are medians of DMU-level shares; they need not sum to 1.</span></span>
-<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a><span class="co">#&gt;  n_na counts DMUs with any NA component.)</span></span></code></pre></div>
-<p>The five-component source decomposition of Rødseth (2025, Eq. 11) —
-production and abatement efficiency, coefficient quality and allocative
-components — is available as
-<code>pgt_decompose(tech, type = &quot;rodseth&quot;)</code> and needs no groups;
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>dec <span class="ot">&lt;-</span> <span class="fu">pgt_decompose</span>(tech, <span class="at">type =</span> <span class="st">&quot;envelope&quot;</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="fu">summary</span>(dec)</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="co">#&gt; pgt decomposition: type = envelope, returns = vrs, DMUs = 180</span></span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="co">#&gt;   components: WR x TGR (product = total)</span></span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="co">#&gt; Group medians (components, total, attribution shares):</span></span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a><span class="co">#&gt;       group   n n_na    WR   TGR total share_WR share_TGR</span></span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a><span class="co">#&gt;  Integrated 105    0 0.183 0.990 0.157    0.997   0.00304</span></span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a><span class="co">#&gt;    Minimill  75    0 0.653 0.971 0.649    0.960   0.03963</span></span>
+<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a><span class="co">#&gt; (share_* are medians of DMU-level shares; they need not sum to 1.</span></span>
+<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a><span class="co">#&gt;  n_na counts DMUs with any NA component.)</span></span></code></pre></div>
+<p>The five-component source decomposition of Rødseth (2025, Eq. 11)
+traces each score to production technical efficiency, coefficient
+quality, production allocative efficiency, abatement technical
+efficiency and abatement allocative efficiency; it needs no groups, and
 the stage programmes are stated in
-<code>vignette(&quot;models&quot;, &quot;pgt&quot;)</code>.</p>
+<code>vignette(&quot;models&quot;, &quot;pgt&quot;)</code>. The abatement components have
+something to measure here because the panel observes
+<code>captured</code> and marks <code>capture_energy</code> as the
+control input.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>dec5 <span class="ot">&lt;-</span> <span class="fu">pgt_decompose</span>(tech, <span class="at">type =</span> <span class="st">&quot;rodseth&quot;</span>)</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="fu">summary</span>(dec5)</span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="co">#&gt; pgt decomposition: type = rodseth, returns = vrs, DMUs = 180</span></span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="co">#&gt;   components: te_production x quality x ae_production x te_abatement x ae_abatement (product = total)</span></span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a><span class="co">#&gt; Group medians (components, total, attribution shares):</span></span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a><span class="co">#&gt;       group   n n_na te_production quality ae_production te_abatement</span></span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a><span class="co">#&gt;  Integrated 105    0             1       1         0.425            1</span></span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a><span class="co">#&gt;    Minimill  75    0             1       1         0.861            1</span></span>
+<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a><span class="co">#&gt;  ae_abatement total share_te_production share_quality share_ae_production</span></span>
+<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a><span class="co">#&gt;         0.756 0.157           -1.46e-13             0               0.842</span></span>
+<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a><span class="co">#&gt;         0.932 0.649            2.08e-13             0               0.765</span></span>
+<span id="cb9-13"><a href="#cb9-13" tabindex="-1"></a><span class="co">#&gt;  share_te_abatement share_ae_abatement</span></span>
+<span id="cb9-14"><a href="#cb9-14" tabindex="-1"></a><span class="co">#&gt;            2.09e-17             0.0507</span></span>
+<span id="cb9-15"><a href="#cb9-15" tabindex="-1"></a><span class="co">#&gt;            0.00e+00             0.1381</span></span>
+<span id="cb9-16"><a href="#cb9-16" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-17"><a href="#cb9-17" tabindex="-1"></a><span class="co">#&gt; (share_* are medians of DMU-level shares; they need not sum to 1.</span></span>
+<span id="cb9-18"><a href="#cb9-18" tabindex="-1"></a><span class="co">#&gt;  n_na counts DMUs with any NA component.)</span></span>
+<span id="cb9-19"><a href="#cb9-19" tabindex="-1"></a>comps <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;te_production&quot;</span>, <span class="st">&quot;quality&quot;</span>, <span class="st">&quot;ae_production&quot;</span>,</span>
+<span id="cb9-20"><a href="#cb9-20" tabindex="-1"></a>           <span class="st">&quot;te_abatement&quot;</span>, <span class="st">&quot;ae_abatement&quot;</span>, <span class="st">&quot;total&quot;</span>)</span>
+<span id="cb9-21"><a href="#cb9-21" tabindex="-1"></a>med <span class="ot">&lt;-</span> <span class="fu">aggregate</span>(dec5<span class="sc">$</span>results[comps],</span>
+<span id="cb9-22"><a href="#cb9-22" tabindex="-1"></a>                 <span class="fu">list</span>(<span class="at">abatement =</span> steeldemo<span class="sc">$</span>abatement_tech), median)</span>
+<span id="cb9-23"><a href="#cb9-23" tabindex="-1"></a>med[comps] <span class="ot">&lt;-</span> <span class="fu">round</span>(med[comps], <span class="dv">3</span>)</span>
+<span id="cb9-24"><a href="#cb9-24" tabindex="-1"></a>med</span>
+<span id="cb9-25"><a href="#cb9-25" tabindex="-1"></a><span class="co">#&gt;        abatement te_production quality ae_production te_abatement ae_abatement</span></span>
+<span id="cb9-26"><a href="#cb9-26" tabindex="-1"></a><span class="co">#&gt; 1           none         1.000       1         0.542        1.000        0.785</span></span>
+<span id="cb9-27"><a href="#cb9-27" tabindex="-1"></a><span class="co">#&gt; 2            CCS         1.000       1         1.000        0.911        0.990</span></span>
+<span id="cb9-28"><a href="#cb9-28" tabindex="-1"></a><span class="co">#&gt; 3            CCU         0.964       1         0.349        0.986        0.955</span></span>
+<span id="cb9-29"><a href="#cb9-29" tabindex="-1"></a><span class="co">#&gt; 4 mineralisation         1.000       1         0.992        0.566        0.850</span></span>
+<span id="cb9-30"><a href="#cb9-30" tabindex="-1"></a><span class="co">#&gt;   total</span></span>
+<span id="cb9-31"><a href="#cb9-31" tabindex="-1"></a><span class="co">#&gt; 1 0.287</span></span>
+<span id="cb9-32"><a href="#cb9-32" tabindex="-1"></a><span class="co">#&gt; 2 0.693</span></span>
+<span id="cb9-33"><a href="#cb9-33" tabindex="-1"></a><span class="co">#&gt; 3 0.145</span></span>
+<span id="cb9-34"><a href="#cb9-34" tabindex="-1"></a><span class="co">#&gt; 4 0.450</span></span></code></pre></div>
+<p>Two features of the table follow from the stage programmes. Quality
+is 1 throughout because the coefficients are homogeneous. Production
+technical efficiency is 1 at the plants without capture and below 1 at
+many capturing plants: the first stage holds the captured tonnage at the
+plant’s own level only as a floor, so a mix of peers that captures more
+from the same inputs reaches a lower controlled emission. Production
+allocative efficiency, the stage that frees the material inputs, carries
+most of the gap. The abatement components separate the plants by what
+they capture: abatement technical efficiency falls below 1 only where
+capture is active, where it measures how far the plant’s captured
+tonnage falls short of the best capture observed at no more capture
+energy, and abatement allocative efficiency, the stage that frees the
+capture-energy input, is lowest at the plants that capture nothing,
+where it measures the emission reduction available from adopting capture
+on the peers’ terms.</p>
 </div>
 <div id="a-worked-example-on-real-data" class="section level2">
 <h2>A worked example on real data</h2>
@@ -528,26 +620,26 @@ Philippine rice farms with a physical fertiliser input
 the fertiliser as the pollutant potential gives a nitrogen materials
 balance. The nitrogen fraction below is illustrative (urea-equivalent,
 about 0.46 of the active ingredient).</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="fu">data</span>(<span class="st">&quot;riceProdPhil&quot;</span>, <span class="at">package =</span> <span class="st">&quot;frontier&quot;</span>)</span>
-<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>d8 <span class="ot">&lt;-</span> riceProdPhil[riceProdPhil<span class="sc">$</span>YEARDUM <span class="sc">==</span> <span class="dv">8</span>, ]</span>
-<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>uN <span class="ot">&lt;-</span> <span class="fl">0.46</span></span>
-<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>rice <span class="ot">&lt;-</span> <span class="fu">pgt_tech</span>(</span>
-<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>  <span class="at">x =</span> <span class="fu">as.matrix</span>(d8[, <span class="fu">c</span>(<span class="st">&quot;AREA&quot;</span>, <span class="st">&quot;LABOR&quot;</span>, <span class="st">&quot;NPK&quot;</span>, <span class="st">&quot;OTHER&quot;</span>)]),</span>
-<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a>  <span class="at">y =</span> d8<span class="sc">$</span>PROD,</span>
-<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a>  <span class="at">b =</span> uN <span class="sc">*</span> d8<span class="sc">$</span>NPK,</span>
-<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a>  <span class="at">u =</span> <span class="fu">c</span>(<span class="at">AREA =</span> <span class="dv">0</span>, <span class="at">LABOR =</span> <span class="dv">0</span>, <span class="at">NPK =</span> uN, <span class="at">OTHER =</span> <span class="dv">0</span>),</span>
-<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a>  <span class="at">v =</span> <span class="dv">0</span>,</span>
-<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a>  <span class="at">id =</span> <span class="fu">as.character</span>(d8<span class="sc">$</span>FMERCODE)</span>
-<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a>)</span>
-<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a>rice_fit <span class="ot">&lt;-</span> <span class="fu">pgt</span>(rice, <span class="at">model =</span> <span class="st">&quot;wgd&quot;</span>)</span>
-<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a><span class="fu">summary</span>(rice_fit)</span>
-<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a><span class="co">#&gt; pgt fit: model = wgd, returns = vrs, peers = all</span></span>
-<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a><span class="co">#&gt;   pollutant: b</span></span>
-<span id="cb8-16"><a href="#cb8-16" tabindex="-1"></a><span class="co">#&gt;   DMUs: 43   failed LPs: 0</span></span>
-<span id="cb8-17"><a href="#cb8-17" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb8-18"><a href="#cb8-18" tabindex="-1"></a><span class="co">#&gt; Efficiency (b*/b):</span></span>
-<span id="cb8-19"><a href="#cb8-19" tabindex="-1"></a><span class="co">#&gt;     0%    25%    50%    75%   100% </span></span>
-<span id="cb8-20"><a href="#cb8-20" tabindex="-1"></a><span class="co">#&gt; 0.1341 0.3777 0.5148 0.7235 1.0000</span></span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="fu">data</span>(<span class="st">&quot;riceProdPhil&quot;</span>, <span class="at">package =</span> <span class="st">&quot;frontier&quot;</span>)</span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>d8 <span class="ot">&lt;-</span> riceProdPhil[riceProdPhil<span class="sc">$</span>YEARDUM <span class="sc">==</span> <span class="dv">8</span>, ]</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>uN <span class="ot">&lt;-</span> <span class="fl">0.46</span></span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>rice <span class="ot">&lt;-</span> <span class="fu">pgt_tech</span>(</span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a>  <span class="at">x =</span> <span class="fu">as.matrix</span>(d8[, <span class="fu">c</span>(<span class="st">&quot;AREA&quot;</span>, <span class="st">&quot;LABOR&quot;</span>, <span class="st">&quot;NPK&quot;</span>, <span class="st">&quot;OTHER&quot;</span>)]),</span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a>  <span class="at">y =</span> d8<span class="sc">$</span>PROD,</span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a>  <span class="at">b =</span> uN <span class="sc">*</span> d8<span class="sc">$</span>NPK,</span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a>  <span class="at">u =</span> <span class="fu">c</span>(<span class="at">AREA =</span> <span class="dv">0</span>, <span class="at">LABOR =</span> <span class="dv">0</span>, <span class="at">NPK =</span> uN, <span class="at">OTHER =</span> <span class="dv">0</span>),</span>
+<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a>  <span class="at">v =</span> <span class="dv">0</span>,</span>
+<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a>  <span class="at">id =</span> <span class="fu">as.character</span>(d8<span class="sc">$</span>FMERCODE)</span>
+<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a>)</span>
+<span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a>rice_fit <span class="ot">&lt;-</span> <span class="fu">pgt</span>(rice, <span class="at">model =</span> <span class="st">&quot;wgd&quot;</span>)</span>
+<span id="cb10-13"><a href="#cb10-13" tabindex="-1"></a><span class="fu">summary</span>(rice_fit)</span>
+<span id="cb10-14"><a href="#cb10-14" tabindex="-1"></a><span class="co">#&gt; pgt fit: model = wgd, returns = vrs, peers = all</span></span>
+<span id="cb10-15"><a href="#cb10-15" tabindex="-1"></a><span class="co">#&gt;   pollutant: b</span></span>
+<span id="cb10-16"><a href="#cb10-16" tabindex="-1"></a><span class="co">#&gt;   DMUs: 43   failed LPs: 0</span></span>
+<span id="cb10-17"><a href="#cb10-17" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb10-18"><a href="#cb10-18" tabindex="-1"></a><span class="co">#&gt; Efficiency (b*/b):</span></span>
+<span id="cb10-19"><a href="#cb10-19" tabindex="-1"></a><span class="co">#&gt;     0%    25%    50%    75%   100% </span></span>
+<span id="cb10-20"><a href="#cb10-20" tabindex="-1"></a><span class="co">#&gt; 0.1341 0.3777 0.5148 0.7235 1.0000</span></span></code></pre></div>
 <p>Here environmental efficiency is the scope to cut fertiliser nitrogen
 while holding rice output at its observed level. One caveat on this
 construction: because the bad output is defined as the full nitrogen

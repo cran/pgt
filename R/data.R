@@ -61,18 +61,30 @@
 #' of global plant-level data: two production routes with different
 #' carbon intensities, four material inputs expressed in CO2-potential
 #' units (so the material flow coefficients are \eqn{u = 1}), crude
-#' steel output, and Scope 1 CO2 emissions satisfying the
-#' materials-balance identity \eqn{u'x - v y \ge b} with
-#' \eqn{v = 0.01467} (carbon retained in the product). The synthetic
-#' generator (see \code{data-raw/steeldemo.R}) assumes roughly 0.4 per
-#' cent retained carbon by mass, converted to CO2 units:
-#' \eqn{0.004 \times 44/12 = 0.01467} tonnes of CO2 per tonne of steel;
-#' emissions are drawn as the CO2 potential minus this retained content,
-#' minus a small non-emitted remainder, so the identity holds in every
-#' row. The data are synthetic; they mimic magnitudes, not any real
-#' plant.
+#' steel output, Scope 1 CO2 emissions, and an observed abatement
+#' output with its pollution-control input. The materials-balance
+#' identity closes exactly in every row,
+#' \eqn{u'x - v y = b + a}, with \eqn{v = 0.01467} (carbon retained in
+#' the product), \eqn{b} the emissions and \eqn{a} the captured CO2;
+#' the five input columns, \code{capture_energy} included, make up
+#' \eqn{x}. The synthetic generator (see \code{data-raw/steeldemo.R})
+#' assumes roughly 0.4 per cent retained carbon by mass, converted to
+#' CO2 units: \eqn{0.004 \times 44/12 = 0.01467} tonnes of CO2 per
+#' tonne of steel. Abatement is assigned at plant level: eight
+#' integrated plants adopt post-combustion carbon capture and storage
+#' (CCS) in 2022 or 2023 and capture 60 to 90 per cent of their gross
+#' emissions from the adoption year on, six plants of either route
+#' capture 5 to 15 per cent for utilisation (CCU), and ten plants
+#' carbonate slag (mineralisation, 1 to 3 per cent). Capturing costs
+#' energy: \code{capture_energy} is the CO2 potential of that energy
+#' (0.10 to 0.20 tonnes per tonne captured for CCS and CCU, 0.01 to
+#' 0.03 for mineralisation), and its CO2 is part of the gross emissions
+#' the capture process treats. The data are synthetic; they mimic
+#' magnitudes, not any real plant. Versions before 0.7.0 shipped this
+#' panel without abatement and with a small unexplained closure gap in
+#' every row; the values of all columns changed with the regeneration.
 #'
-#' @format A data frame with 180 rows (60 plants over 3 years) and 9
+#' @format A data frame with 180 rows (60 plants over 3 years) and 12
 #'   columns:
 #' \describe{
 #'   \item{plant}{Plant identifier.}
@@ -85,9 +97,28 @@
 #'   \item{raw_material}{Raw material input (tonnes CO2 potential).}
 #'   \item{flux}{Flux and alloy input (tonnes CO2 potential).}
 #'   \item{emissions}{Scope 1 CO2 emissions (tonnes).}
+#'   \item{captured}{CO2 leaving as an abatement output (tonnes): the
+#'     \code{a} slot of \code{\link{pgt_tech}}; zero where no
+#'     abatement is active.}
+#'   \item{capture_energy}{CO2 potential of the energy consumed by the
+#'     capture process (tonnes): a pollution-control input, the
+#'     natural \code{x_abate} marker.}
+#'   \item{abatement_tech}{Abatement active in the plant-year:
+#'     \code{"none"}, \code{"CCS"}, \code{"CCU"} or
+#'     \code{"mineralisation"}.}
 #' }
 #' @source Simulated; see \code{data-raw/steeldemo.R} in the package
 #'   sources.
+#' @examples
+#' data(steeldemo)
+#' tech <- pgt_tech(
+#'   x = steeldemo[, c("coal_coke", "other_fuel", "raw_material", "flux",
+#'                     "capture_energy")],
+#'   y = steeldemo$production, b = steeldemo$emissions,
+#'   a = steeldemo$captured, v = 0.01467, x_abate = "capture_energy",
+#'   group = steeldemo$route, id = steeldemo$plant)
+#' attr(mb_check(tech), "n_violations")
+#' table(steeldemo$abatement_tech, steeldemo$year)
 "steeldemo"
 
 #' US coal-fired power plants with a measured SO2 account, 2022
@@ -176,3 +207,93 @@
 #' mb <- mb_check(tech)
 #' attr(mb, "n_violations")
 "uscoal"
+
+#' US coal-fired power plants with flue-gas desulphurisation, 2023
+#'
+#' A cross-section of 154 US coal-fired power plants that operated
+#' flue-gas desulphurisation (FGD) in 2023, with a sulfur-dioxide
+#' materials-balance account whose abatement side is observed through
+#' the SO2 removed by the scrubbers and whose control inputs, the FGD
+#' sorbent and the FGD electricity, are reported. The account closes by
+#' construction, \eqn{2 \cdot \mathrm{sulfur}/100 \cdot \mathrm{coal} =
+#' \mathrm{so2} + \mathrm{so2\_removed}}, so the directional model
+#' (\code{model = "fdmo"}) and the abatement stages of the
+#' five-component decomposition can be run on real data.
+#'
+#' The abatement is derived, not metered: \code{so2_removed} is the
+#' sulfur-implied SO2 potential minus the SO2 measured at the stack,
+#' and therefore also absorbs sulfur retained in ash, sulfur emitted by
+#' unscrubbed units at partially scrubbed plants, and any error in the
+#' receipt-weighted sulfur share. The reported removal
+#' \code{efficiency} from EIA-923 Schedule 8C is an independent check
+#' (EIA instructs respondents to base it on monitoring data where
+#' available and on design specifications otherwise): the derived
+#' removal share \code{so2_removed / (so2 + so2_removed)} has a median
+#' of 0.953 against a median reported efficiency of 0.950, the
+#' efficiency-implied removal lies within 1.2 per cent of the derived
+#' one for half the plants, and the two rank with a Spearman
+#' correlation of 0.82 across the 140 plants reporting an efficiency.
+#' The largest departures are low-sulfur plants, where a small error in
+#' the sulfur share moves the derived share a lot, and the 12 plants
+#' where \code{scrubbed_units < coal_units}. Emissions come from EPA's
+#' Clean Air Markets Division continuous emission monitoring, summed
+#' over all monitored units of the plant; fuel, sulfur, generation and
+#' FGD data from EIA-923. Plants enter when at least one monitored
+#' coal unit lists SO2 controls, at least one Schedule 8C SO2 control
+#' unit is operating, the quantities are positive and the derived
+#' abatement is positive (one plant was dropped on the last
+#' criterion). Coal is on the total-fuel basis, so at
+#' combined-heat-and-power plants the potential includes coal burned
+#' for thermal output while \code{gen} is electric only; non-coal
+#' fuels carry no sulfur in the account; \code{sorbent} and
+#' \code{fgd_mwh} are zero where a plant reports no quantity (31 and
+#' 54 plants). The construction, filters and download provenance are in
+#' \code{data-raw/usfgd.R}.
+#'
+#' @format A data frame with 154 rows and 17 columns:
+#' \describe{
+#'   \item{plant}{ORIS plant code (character).}
+#'   \item{name}{Plant name (CAMD).}
+#'   \item{state}{State abbreviation.}
+#'   \item{coal}{Coal consumption (short tons).}
+#'   \item{sulfur}{Receipt-tonnage-weighted sulfur content of the coal
+#'     (percent by weight).}
+#'   \item{other_heat}{Non-coal fuel consumption (MMBtu).}
+#'   \item{capacity}{Nameplate capacity of the generators associated
+#'     with the plant's monitored units (MW).}
+#'   \item{gen}{Net generation (MWh).}
+#'   \item{heat_input}{Heat input of the monitored units (MMBtu).}
+#'   \item{coal_units}{Number of monitored units whose primary fuel is
+#'     coal.}
+#'   \item{scrubbed_units}{Number of those units listing SO2 control
+#'     equipment.}
+#'   \item{so2}{Measured SO2 emissions (short tons).}
+#'   \item{so2_removed}{Derived SO2 abatement, potential minus
+#'     \code{so2} (short tons): the \code{a} slot of
+#'     \code{\link{pgt_tech}}.}
+#'   \item{efficiency}{Reported SO2 removal efficiency at the annual
+#'     operating factor, mean over the plant's operating SO2 control
+#'     units (fraction; \code{NA} for 14 plants).}
+#'   \item{sorbent}{FGD sorbent quantity (short tons).}
+#'   \item{fgd_mwh}{FGD electricity consumption (MWh).}
+#'   \item{n_fgd}{Number of operating SO2 control units in
+#'     Schedule 8C.}
+#' }
+#' @source US Energy Information Administration, Form EIA-923 (2023
+#'   final revision), and US Environmental Protection Agency, Clean Air
+#'   Markets Division Power Sector Emissions Data (annual apportioned
+#'   emissions and facility attributes, 2023); see
+#'   \code{data-raw/usfgd.R} in the package sources.
+#' @examples
+#' data(usfgd)
+#' tech <- pgt_tech(
+#'   x = usfgd[, c("coal", "other_heat", "capacity", "sorbent", "fgd_mwh")],
+#'   y = usfgd$gen, b = usfgd$so2, a = usfgd$so2_removed,
+#'   u = cbind(coal = 2 * usfgd$sulfur / 100, other_heat = 0,
+#'             capacity = 0, sorbent = 0, fgd_mwh = 0),
+#'   v = 0, x_abate = c("sorbent", "fgd_mwh"), id = usfgd$plant)
+#' attr(mb_check(tech), "n_violations")
+#' # derived removal share against the reported efficiency
+#' share <- usfgd$so2_removed / (usfgd$so2 + usfgd$so2_removed)
+#' cor(share, usfgd$efficiency, method = "spearman", use = "complete.obs")
+"usfgd"

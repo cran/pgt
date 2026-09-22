@@ -1,7 +1,7 @@
 Package: pgt
 Type: Package
 Title: Data Envelopment Analysis for Pollution-Generating Technologies
-Version: 0.6.1
+Version: 0.7.0
 Authors@R: c(
     person("Erik", "Enstad", email = "erik.enstad@nhh.no",
            role = c("aut", "cre"),
@@ -15,11 +15,11 @@ Description: Nonparametric efficiency analysis for pollution-generating
     <doi:10.1016/j.jeem.2012.02.005>, the materials-balance cost model of
     Coelli, Lauwers and Van Huylenbroeck (2007)
     <doi:10.1007/s11123-007-0052-8> and a weak-disposability reference
-    model, with an enforced materials-balance identity, a pre-estimation
-    feasibility audit, metafrontier decompositions, bad-output shadow
-    prices, marginal abatement cost curves, a cross-axiom comparison
-    harness, a global Malmquist-Luenberger productivity index and
-    subsampling inference. Estimators are solved with 'lpSolveAPI'.
+    model, with a pre-estimation audit of every materials-balance
+    account, metafrontier decompositions, bad-output shadow prices,
+    marginal abatement cost curves, a cross-axiom comparison harness, a
+    global Malmquist-Luenberger productivity index and subsampling
+    sensitivity intervals. Estimators are solved with 'lpSolveAPI'.
 License: GPL (>= 3)
 Encoding: UTF-8
 RoxygenNote: 7.3.3
@@ -32,8 +32,8 @@ LazyData: true
 URL: https://github.com/iik1/pgt
 BugReports: https://github.com/iik1/pgt/issues
 NeedsCompilation: no
-Packaged: 2026-08-11 17:38:16 UTC; s14454
+Packaged: 2026-09-22 13:09:45 UTC; s14454
 Author: Erik Enstad [aut, cre] (ORCID: <https://orcid.org/0009-0006-1053-3849>)
 Maintainer: Erik Enstad <erik.enstad@nhh.no>
 Repository: CRAN
-Date/Publication: 2026-08-19 11:30:02 UTC
+Date/Publication: 2026-09-22 14:40:02 UTC

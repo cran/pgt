@@ -1,3 +1,73 @@
+# pgt 0.7.0
+
+New dataset with an observed abatement output, referee-driven
+documentation and test additions, and a regenerated
+`steeldemo` panel with abatement. No estimator changed, but every
+result computed on `steeldemo` differs from 0.6.1.
+
+* `steeldemo` now carries an observed abatement output and its
+  pollution-control input: `captured` (CO2 leaving through
+  post-combustion CCS at eight integrated plants adopting in 2022 or
+  2023, capture for utilisation at six plants, or slag mineralisation
+  at ten), `capture_energy` (the CO2 potential of the energy the
+  capture consumes, the natural `x_abate` marker) and `abatement_tech`.
+  The materials-balance identity now closes exactly in every row,
+  `u'x - v y = emissions + captured`, so the directional model and the
+  abatement stages of the five-component decomposition can be run on
+  the panel. The generator's seed and plant structure are unchanged,
+  but the earlier process-recovery slack is gone and the emissions
+  column is re-drawn, so scores computed on `steeldemo` with 0.6.1 do
+  not reproduce on this version (the shipped `uscoal` and `pigfarms`
+  data are untouched).
+
+* New dataset `usfgd`: 154 US coal-fired power plants with flue-gas
+  desulphurisation in 2023, built from EIA-923 (fuel, sulfur,
+  generation, Schedule 8C control units, sorbent, FGD electricity) and
+  EPA CAMD monitored SO2, with the SO2 removed by the scrubbers as a
+  derived abatement output (potential minus measured SO2) and the
+  reported removal efficiency as a cross-check. The account closes by
+  construction, so the directional model and the abatement stages of
+  the five-component decomposition run on real data.
+* Numerical robustness: `pgt()`, `boot_pgt()`, `pgt_decompose()` and
+  `pgt_ml()` now solve every programme on a copy of the technology
+  scaled to unit magnitude and scale level-valued results back. The
+  programmes are homogeneous of degree one in the quantities, so
+  weights, ratio scores and duals are unchanged in exact arithmetic;
+  at tonne magnitudes lp_solve's default scaling could fail, or stop
+  at a suboptimal vertex with status 0 (the decomposition's first
+  stage returned production technical efficiency above 1 for three
+  `steeldemo` plants built without the abatement output), and the
+  rescaled solves remove both. Results can differ from 0.6.1 at the
+  solver's tolerance.
+
+* New `test-invariance.R`: DMU-order invariance and duplicate-DMU
+  neutrality for the `wgd`, `wgd_input_fixed` and `envelope` models,
+  and a two-unit example pinning the retained-content dichotomy (a
+  unit's `wgd` score either coincides with its envelope score for
+  every `v` or moves for every positive `v`, switching peers once `v`
+  exceeds the emission boundary's descent rate).
+* `?mb_check` documents the zero-potential case: `rel_gap` is computed
+  against a machine-epsilon floor rather than returned as `-Inf`, and
+  such an account is flagged whenever `b` exceeds `tol` times machine
+  epsilon.
+* `?pgt` states explicitly that the by-production `mean_eff` column is
+  a package summary, not a measure defined in Murty, Russell and
+  Levkoff (2012).
+
+* Documentation: the directional model `"fdmo"` is now cited as
+  Rodseth (2025) Eq. 14, the factorially determined multi-output form
+  that his Proposition 4 derives from Eq. 13 by fixing abatement at the
+  DMU's own level. Earlier versions cited Eq. 13 for the same programme;
+  no code changed.
+
+* Documentation: DESCRIPTION, the README, `?pgt` and the vignettes no
+  longer describe the materials-balance account as "enforced". The
+  account enters each programme differently (a cap in
+  `"wgd_input_fixed"`, an equality in `"fdmo"`, a price system in
+  `"mb_cost"`, an objective valuation only in `"wgd"` and
+  `"envelope"`), and `mb_check()` is where it is audited. No code
+  changed.
+
 # pgt 0.6.1
 
 Documentation scoping and validation hardening after a full
@@ -28,7 +98,7 @@ paper-code audit; no estimator changes.
 
 # pgt 0.6.0
 
-Faithful weak-G-disposability, several intended outputs, and the
+Weak-G-disposability in its Eq. 6 reduced form, several intended outputs, and the
 five-component decomposition of Rodseth (2025), from a close reading of
 the published paper.
 
@@ -167,7 +237,7 @@ submission.
 * `pgt_ml()` gains `technology = "wd"`: the weak-disposability
   directional distance in the Kuosmanen form, the technology under
   which Chung, Fare and Grosskopf (1997) and Oh (2010) define the
-  index, making it the faithful Oh (2010) comparator. The free-disposal
+  index, making it the comparator defined by Oh (2010). The free-disposal
   semantics of the default `"wgd"` and `"envelope"` options are now
   stated plainly and the claim that they coincide with the
   weak-disposability index when the cap does not bind has been removed
@@ -308,8 +378,8 @@ Competing axiom systems and a comparison harness.
 The directional representation and richer material accounting.
 
 * `pgt(model = "fdmo")`: the factorially determined multi-output
-  (directional) representation of Rodseth (2025), Eq. 13 with abatement
-  fixed at each DMU's own level (alias `"ddf"`). Jointly expands the good
+  (directional) representation of Rodseth (2025), Eq. 14, that is
+  Eq. 13 with abatement fixed at each DMU's own level (alias `"ddf"`). Jointly expands the good
   output and contracts the bad output; returns good-output, bad-output
   and gross efficiency. Unit tests reproduce the paper's Table 3.
 * DMU-specific material flow coefficients: `u` may be an `L x N` matrix

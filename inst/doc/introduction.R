@@ -8,10 +8,13 @@ library(pgt)
 ## -----------------------------------------------------------------------------
 data(steeldemo)
 tech <- pgt_tech(
-  x = steeldemo[, c("coal_coke", "other_fuel", "raw_material", "flux")],
+  x = steeldemo[, c("coal_coke", "other_fuel", "raw_material", "flux",
+                    "capture_energy")],
   y = steeldemo$production,
   b = steeldemo$emissions,
+  a = steeldemo$captured,
   v = 0.01467,
+  x_abate = "capture_energy",
   group = steeldemo$route,
   id = steeldemo$plant
 )
@@ -30,6 +33,10 @@ summary(fit)
 fit_env <- pgt(tech, model = "envelope")
 summary(fit_env)
 
+## -----------------------------------------------------------------------------
+fit_dir <- pgt(tech, model = "fdmo")
+summary(fit_dir)
+
 ## ----fig.alt = "Step curve of marginal abatement cost against cumulative abatement potential"----
 head(shadow_prices(fit))
 mac <- mac_curve(fit, price = 550)
@@ -38,6 +45,16 @@ plot(mac)
 ## -----------------------------------------------------------------------------
 dec <- pgt_decompose(tech, type = "envelope")
 summary(dec)
+
+## -----------------------------------------------------------------------------
+dec5 <- pgt_decompose(tech, type = "rodseth")
+summary(dec5)
+comps <- c("te_production", "quality", "ae_production",
+           "te_abatement", "ae_abatement", "total")
+med <- aggregate(dec5$results[comps],
+                 list(abatement = steeldemo$abatement_tech), median)
+med[comps] <- round(med[comps], 3)
+med
 
 ## ----eval = requireNamespace("frontier", quietly = TRUE)----------------------
 data("riceProdPhil", package = "frontier")

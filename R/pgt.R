@@ -9,10 +9,16 @@
 #'
 #' The models fall into two axiom families. The materials-balance models
 #' (\code{"wgd"}, \code{"wgd_input_fixed"}, \code{"envelope"},
-#' \code{"fdmo"}, \code{"mb_cost"}) enforce the identity
-#' \eqn{u'x_l - v'y_l \ge b_l}; the reference models (\code{"byprod"},
-#' \code{"wd"}) implement competing systems for cross-comparison (see
-#' [compare_models()]).
+#' \code{"fdmo"}, \code{"mb_cost"}) are built on the account
+#' \eqn{u'x_l - v'y_l \ge b_l}, which enters each programme
+#' differently: as a cap on the evaluated DMU's projected emission in
+#' \code{"wgd_input_fixed"}, as an equality in \code{"fdmo"}, as a
+#' price system in \code{"mb_cost"}, and only as a valuation of retained
+#' output content in the objective of \code{"wgd"} and
+#' \code{"envelope"}, whose programmes carry no row from the DMU's own
+#' account. The audit of the account is [mb_check()]. The reference
+#' models (\code{"byprod"}, \code{"wd"}) implement competing systems
+#' for cross-comparison (see [compare_models()]).
 #' \describe{
 #'   \item{\code{"wgd"}}{The weak-G-disposability model of Rodseth
 #'     (2025), Eq. 6 in reduced form. Equation 6 fixes only the
@@ -51,8 +57,9 @@
 #'     envelope of the \eqn{(y, b)} scatter. Self-reference is always
 #'     feasible, so all scores lie in \eqn{(0, 1]}.}
 #'   \item{\code{"fdmo"}}{The factorially determined multi-output
-#'     (directional) representation of Rodseth (2025), Eq. 13 with the
-#'     abatement output fixed at each DMU's own level. It jointly
+#'     (directional) representation of Rodseth (2025), Eq. 14, which
+#'     his Proposition 4 derives from Eq. 13 by fixing the abatement
+#'     output at each DMU's own level. It jointly
 #'     maximises the expansion of the good output (\eqn{\theta_y}) and
 #'     the contraction of the bad output (\eqn{\theta_b}) along the
 #'     materials-balance frontier; gross inefficiency is
@@ -88,8 +95,10 @@
 #'     abatement-integrated extension. Returns emission efficiency
 #'     (\eqn{b^*/b}, reported as \code{efficiency}), output
 #'     efficiency (\code{output_eff})
-#'     and \code{mean_eff}, the arithmetic mean of the two sub-efficiencies,
-#'     in the spirit of the Fare-Grosskopf-Lovell graph measure. Set the
+#'     and \code{mean_eff}, the arithmetic mean of the two sub-efficiencies:
+#'     a package summary in the spirit of, but not identical to, the
+#'     Fare-Grosskopf-Lovell graph measure, and not a measure defined
+#'     in the source. Set the
 #'     emission-causing inputs with \code{polluting} in [pgt_tech()].}
 #'   \item{\code{"wd"}}{The weak-disposability model (Kuosmanen 2005
 #'     correct VRS formulation; see the exchange settled in Kuosmanen
@@ -191,10 +200,13 @@
 #' @examples
 #' data(steeldemo)
 #' tech <- pgt_tech(
-#'   x = steeldemo[, c("coal_coke", "other_fuel", "raw_material", "flux")],
+#'   x = steeldemo[, c("coal_coke", "other_fuel", "raw_material", "flux",
+#'                     "capture_energy")],
 #'   y = steeldemo$production,
 #'   b = steeldemo$emissions,
+#'   a = steeldemo$captured,
 #'   v = 0.01467,
+#'   x_abate = "capture_energy",
 #'   group = steeldemo$route,
 #'   id = steeldemo$plant
 #' )
@@ -218,7 +230,7 @@ pgt <- function(tech, model = c("wgd", "wgd_rodseth", "wgd_input_fixed",
   if (model == "fdmo") {
     if (tech$M > 1L) {
       stop("model = \"fdmo\" is defined for a single intended output; ",
-           "the direction of Rodseth (2025, Eq. 13) has no ",
+           "the direction of Rodseth (2025, Eq. 14) has no ",
            "multi-output form.", call. = FALSE)
     }
     if (is.null(tech$a)) {
@@ -241,7 +253,9 @@ pgt <- function(tech, model = c("wgd", "wgd_rodseth", "wgd_input_fixed",
 
   peer_sets <- .peer_sets(tech, peers)
   L <- tech$L
-  ctx <- .solve_ctx(tech, model, p)
+  # solve on the unit-magnitude copy (see .scale_tech) and scale back
+  sc <- .scale_tech(tech)
+  ctx <- .solve_ctx(sc$tech, model, p)
   weights <- vector("list", L)
   names(weights) <- make.unique(tech$id)
   status <- rep(NA_integer_, L)
@@ -249,7 +263,8 @@ pgt <- function(tech, model = c("wgd", "wgd_rodseth", "wgd_input_fixed",
 
   for (i in seq_len(L)) {
     ps <- peer_sets[[i]]
-    sol <- .lp_solve_one(model, i, tech, ps, vrs, p = p, ctx = ctx)
+    sol <- .unscale_sol(.lp_solve_one(model, i, sc$tech, ps, vrs, p = p,
+                                      ctx = ctx), sc$s)
     sols[[i]] <- sol
     status[i] <- sol$status
     w <- if (model == "byprod") sol$mu else sol$lambda
@@ -270,7 +285,7 @@ pgt <- function(tech, model = c("wgd", "wgd_rodseth", "wgd_input_fixed",
         as.numeric(val[m])
     }, numeric(1))
   }
-  b_p <- ctx$b_p
+  b_p <- tech$b[, p]
 
   # one intended-output column when M = 1, one per named output else;
   # duals follow the same naming

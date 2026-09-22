@@ -362,7 +362,7 @@ materials-balance cap on the projected point.</p>
 technology. The default <code>&quot;wd&quot;</code> imposes weak disposability of
 the bad output in the Kuosmanen (2005) form; this is the technology
 under which Chung, Färe and Grosskopf (1997) and Oh (2010) define the
-index, so it is the faithful comparator. The
+index, so it is the comparator under which the index is defined. The
 <code>&quot;input_envelope&quot;</code> and <code>&quot;envelope&quot;</code> options treat
 the bad output as reducible to the peer emission envelope and are
 exploratory companions; the input-keeping variant matches the shape of
@@ -445,25 +445,28 @@ boundary estimators (Politis and Romano 1994; Politis, Romano and Wolf
 1999; Kneip, Simar and Wilson 2008). <code>boot_pgt()</code> covers
 cross-sectional efficiency scores only; no inference is currently
 available for the <code>pgt_ml()</code> index. The example takes the
-first 60 plants of the synthetic <code>steeldemo</code> panel.</p>
+sixty plants of one year of the synthetic <code>steeldemo</code> panel,
+an independent cross-section.</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">data</span>(steeldemo)</span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>steel60 <span class="ot">&lt;-</span> steeldemo[<span class="dv">1</span><span class="sc">:</span><span class="dv">60</span>, ]</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>steel60 <span class="ot">&lt;-</span> steeldemo[steeldemo<span class="sc">$</span>year <span class="sc">==</span> <span class="dv">2021</span>, ]</span>
 <span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>tech <span class="ot">&lt;-</span> <span class="fu">pgt_tech</span>(</span>
-<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>  <span class="at">x =</span> steel60[, <span class="fu">c</span>(<span class="st">&quot;coal_coke&quot;</span>, <span class="st">&quot;other_fuel&quot;</span>, <span class="st">&quot;raw_material&quot;</span>, <span class="st">&quot;flux&quot;</span>)],</span>
-<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>  <span class="at">y =</span> steel60<span class="sc">$</span>production, <span class="at">b =</span> steel60<span class="sc">$</span>emissions, <span class="at">v =</span> <span class="fl">0.01467</span>,</span>
-<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>  <span class="at">group =</span> steel60<span class="sc">$</span>route, <span class="at">id =</span> steel60<span class="sc">$</span>plant</span>
-<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>)</span>
-<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>bt <span class="ot">&lt;-</span> <span class="fu">boot_pgt</span>(tech, <span class="at">model =</span> <span class="st">&quot;wgd&quot;</span>, <span class="at">B =</span> <span class="dv">40</span>, <span class="at">seed =</span> <span class="dv">1</span>)</span>
-<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="co">#&gt; Warning: 1 of 60 DMUs have infeasible LPs in more than half of their subsample</span></span>
-<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="co">#&gt; replicates; their bounds are returned as NA (see per_dmu$n_ok).</span></span>
-<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="fu">head</span>(bt<span class="sc">$</span>per_dmu)</span>
-<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a><span class="co">#&gt;     id      group  estimate     lower     upper          se n_ok</span></span>
-<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a><span class="co">#&gt; 1 P001 Integrated 0.7202900 0.6772965 0.7202900 0.011355476   40</span></span>
-<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a><span class="co">#&gt; 2 P001 Integrated 0.7171565 0.6803568 0.7171565 0.009676331   40</span></span>
-<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a><span class="co">#&gt; 3 P001 Integrated 0.7081322 0.6672375 0.7081322 0.010925786   40</span></span>
-<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a><span class="co">#&gt; 4 P002 Integrated 0.9077958 0.8515193 0.9077958 0.015003567   40</span></span>
-<span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a><span class="co">#&gt; 5 P002 Integrated 0.8494481 0.7743791 0.8494481 0.022007489   40</span></span>
-<span id="cb4-18"><a href="#cb4-18" tabindex="-1"></a><span class="co">#&gt; 6 P002 Integrated 0.8856638 0.8161739 0.8856638 0.020190264   40</span></span></code></pre></div>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>  <span class="at">x =</span> steel60[, <span class="fu">c</span>(<span class="st">&quot;coal_coke&quot;</span>, <span class="st">&quot;other_fuel&quot;</span>, <span class="st">&quot;raw_material&quot;</span>, <span class="st">&quot;flux&quot;</span>,</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>                  <span class="st">&quot;capture_energy&quot;</span>)],</span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>  <span class="at">y =</span> steel60<span class="sc">$</span>production, <span class="at">b =</span> steel60<span class="sc">$</span>emissions, <span class="at">a =</span> steel60<span class="sc">$</span>captured,</span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>  <span class="at">v =</span> <span class="fl">0.01467</span>, <span class="at">x_abate =</span> <span class="st">&quot;capture_energy&quot;</span>,</span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>  <span class="at">group =</span> steel60<span class="sc">$</span>route, <span class="at">id =</span> steel60<span class="sc">$</span>plant</span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a>)</span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a>bt <span class="ot">&lt;-</span> <span class="fu">boot_pgt</span>(tech, <span class="at">model =</span> <span class="st">&quot;wgd&quot;</span>, <span class="at">B =</span> <span class="dv">40</span>, <span class="at">seed =</span> <span class="dv">1</span>)</span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="co">#&gt; Warning: 1 of 60 DMUs have infeasible LPs in more than half of their subsample</span></span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a><span class="co">#&gt; replicates; their bounds are returned as NA (see per_dmu$n_ok).</span></span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a><span class="fu">head</span>(bt<span class="sc">$</span>per_dmu)</span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a><span class="co">#&gt;     id      group  estimate      lower     upper         se n_ok</span></span>
+<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a><span class="co">#&gt; 1 P001 Integrated 0.1258220 0.00000000 0.1258220 0.07672506   40</span></span>
+<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a><span class="co">#&gt; 2 P002 Integrated 0.1536810 0.00000000 0.1534836 0.06553732   40</span></span>
+<span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a><span class="co">#&gt; 3 P003 Integrated 0.2801537 0.02650546 0.2801537 0.09771562   40</span></span>
+<span id="cb4-18"><a href="#cb4-18" tabindex="-1"></a><span class="co">#&gt; 4 P004 Integrated 0.7870091 0.60591234 0.7870091 0.05612814   40</span></span>
+<span id="cb4-19"><a href="#cb4-19" tabindex="-1"></a><span class="co">#&gt; 5 P005 Integrated 0.3612169 0.12117032 0.3612169 0.08785406   40</span></span>
+<span id="cb4-20"><a href="#cb4-20" tabindex="-1"></a><span class="co">#&gt; 6 P006 Integrated 0.1719616 0.00000000 0.1715463 0.05198277   40</span></span></code></pre></div>
 <p>Each unit is evaluated against the subsample frontier alone; the unit
 itself is not appended to the subsample. Replicates in which its
 programme is infeasible are dropped and counted in
@@ -482,14 +485,14 @@ approximation. Before relying on the intervals, check that their width
 is stable in the subsample size (Simar and Wilson 2011).</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="fu">boot_pgt_sensitivity</span>(tech, <span class="at">model =</span> <span class="st">&quot;wgd&quot;</span>, <span class="at">B =</span> <span class="dv">25</span>,</span>
 <span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>                     <span class="at">m_grid =</span> <span class="fu">c</span>(<span class="dv">15</span>, <span class="dv">25</span>, <span class="dv">40</span>), <span class="at">seed =</span> <span class="dv">1</span>)</span>
-<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="co">#&gt; Warning: 1 of 60 DMUs have infeasible LPs in more than half of their subsample</span></span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="co">#&gt; Warning: 2 of 60 DMUs have infeasible LPs in more than half of their subsample</span></span>
 <span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a><span class="co">#&gt; replicates; their bounds are returned as NA (see per_dmu$n_ok).</span></span>
 <span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a><span class="co">#&gt; Warning: 1 of 60 DMUs have infeasible LPs in more than half of their subsample</span></span>
 <span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a><span class="co">#&gt; replicates; their bounds are returned as NA (see per_dmu$n_ok).</span></span>
 <span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a><span class="co">#&gt;    m median_width median_width_pos    mean_se</span></span>
-<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a><span class="co">#&gt; 1 15   0.04688692       0.04688692 0.02081184</span></span>
-<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a><span class="co">#&gt; 2 25   0.03617598       0.03617598 0.01717183</span></span>
-<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a><span class="co">#&gt; 3 40   0.03305646       0.03305646 0.01633076</span></span></code></pre></div>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a><span class="co">#&gt; 1 15   0.18617425       0.18617425 0.09873924</span></span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a><span class="co">#&gt; 2 25   0.15961667       0.15961667 0.08235490</span></span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a><span class="co">#&gt; 3 40   0.08075829       0.08075829 0.03232624</span></span></code></pre></div>
 <p>A width that changes little across the grid supports the chosen
 subsample size; a strong trend means the size, not the data, is driving
 the interval.</p>

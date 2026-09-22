@@ -11,7 +11,7 @@
 #' \code{gap < 0}, in at least one pollutant account (pollutant
 #' \eqn{p}'s LP can be infeasible because of a violation in a different
 #' pollutant \eqn{q}; DMUs satisfying every account always solve via
-#' self-reference). The faithful \code{"wgd"} programme is always
+#' self-reference). The reduced-form \code{"wgd"} programme is always
 #' self-feasible, so its scores carry no feasibility screen; the audit
 #' remains the data-quality check behind its materials-balance
 #' interpretation. Audit before estimation.
@@ -22,13 +22,20 @@
 #'   its pollutant potential \eqn{u'x_l}. The flag is a data-quality
 #'   screen; LP infeasibility tracks the exact sign of the gap, so the
 #'   flagged set is a subset of the accounts with \code{gap < 0}
-#'   (counted separately in attribute \code{"n_negative"}).
+#'   (counted separately in attribute \code{"n_negative"}). An account
+#'   with zero pollutant potential always has a negative gap (strictly
+#'   positive \code{b}); \code{rel_gap} divides by the potential
+#'   floored at machine epsilon, so it is reported as a large but
+#'   finite negative number rather than \code{-Inf}, and the account is
+#'   flagged whenever \code{b} exceeds \code{tol} times machine
+#'   epsilon.
 #'
 #' @return A data frame of class \code{"pgt_mb"} with one row per DMU
 #'   (per pollutant when several are present): \code{id}, \code{group}
 #'   (if present), \code{pollutant} (when several), \code{potential}
 #'   (\eqn{u'x_l}), \code{retained} (\eqn{v'y_l}), \code{b}, \code{gap}
-#'   (\eqn{u'x_l - v'y_l - b_l}), \code{rel_gap} (\code{gap / potential})
+#'   (\eqn{u'x_l - v'y_l - b_l}), \code{rel_gap} (\code{gap / potential},
+#'   the denominator floored at machine epsilon)
 #'   and \code{violated}. When the technology records an abatement
 #'   output, also \code{a} and \code{closure} (\eqn{gap - a_l}): the
 #'   equality residual \eqn{u'x_l - v'y_l - b_l - a_l}, zero when the
@@ -40,10 +47,13 @@
 #' @examples
 #' data(steeldemo)
 #' tech <- pgt_tech(
-#'   x = steeldemo[, c("coal_coke", "other_fuel", "raw_material", "flux")],
+#'   x = steeldemo[, c("coal_coke", "other_fuel", "raw_material", "flux",
+#'                     "capture_energy")],
 #'   y = steeldemo$production,
 #'   b = steeldemo$emissions,
+#'   a = steeldemo$captured,
 #'   v = 0.01467,
+#'   x_abate = "capture_energy",
 #'   group = steeldemo$route,
 #'   id = steeldemo$plant
 #' )
@@ -57,6 +67,9 @@ mb_check <- function(tech, tol = 1e-8) {
     potential <- .mb_potential(tech, p)
     retained <- .retained(tech, p)
     gap <- potential - retained - tech$b[, p]
+    # The floor keeps rel_gap finite on zero-potential accounts; a
+    # future breaking release should report NA (or the gap's sign)
+    # there instead of an epsilon-scaled magnitude.
     rel_gap <- gap / pmax(potential, .Machine$double.eps)
     d <- data.frame(
       id = tech$id, potential = potential, retained = retained,

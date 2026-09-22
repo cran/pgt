@@ -31,7 +31,7 @@
 #' an abatement part): this is the technology under which Chung, Fare
 #' and Grosskopf (1997) and Oh (2010) define the (global)
 #' Malmquist-Luenberger index, so \code{technology = "wd"} is the
-#' faithful Oh (2010) comparator. \code{"input_envelope"} and
+#' comparator defined by Oh (2010). \code{"input_envelope"} and
 #' \code{"envelope"} instead treat the bad output as reducible down to
 #' the peer emission envelope with no proportional output sacrifice,
 #' with (\code{"input_envelope"}) and without (\code{"envelope"}) the
@@ -121,6 +121,8 @@ pgt_ml <- function(tech, technology = c("wd", "input_envelope", "envelope"),
          call. = FALSE)
   }
   use_inputs <- technology == "input_envelope"
+  # the directional distances are ratios: solve on the unit-magnitude copy
+  tech <- .scale_tech(tech)$tech
 
   b_p <- tech$b[, p]
   periods <- levels(tech$period)

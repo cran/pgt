@@ -398,11 +398,11 @@ the three seeded SO2 violations surface immediately.</p>
 </div>
 <div id="every-pollutants-cap-constrains-the-input-fixed-benchmark" class="section level2">
 <h2>Every pollutant’s cap constrains the input-fixed benchmark</h2>
-<p>The faithful <code>&quot;wgd&quot;</code> programme of Eq. 6 uses only the
-selected pollutant’s data. Cross-account discipline lives in the
-input-fixed benchmark: <code>pgt(model = &quot;wgd_input_fixed&quot;)</code>
-selects one pollutant for the objective through <code>pollutant</code>,
-but the caps of every pollutant constrain the peer mix (see
+<p>The <code>&quot;wgd&quot;</code> programme of Eq. 6 uses only the selected
+pollutant’s data. Cross-account discipline lives in the input-fixed
+benchmark: <code>pgt(model = &quot;wgd_input_fixed&quot;)</code> selects one
+pollutant for the objective through <code>pollutant</code>, but the caps
+of every pollutant constrain the peer mix (see
 <code>vignette(&quot;models&quot;, &quot;pgt&quot;)</code> for the collapsed cap rows). A
 peer that looks attractive on CO2 can be unusable because leaning on it
 would breach the evaluated plant’s SO2 account.</p>
@@ -430,7 +430,7 @@ loses one set of constraints:</p>
 <span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>fit1 <span class="ot">&lt;-</span> <span class="fu">pgt</span>(tech1, <span class="at">model =</span> <span class="st">&quot;wgd_input_fixed&quot;</span>)</span>
 <span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a><span class="fu">summary</span>(fit1<span class="sc">$</span>results<span class="sc">$</span>b_star <span class="sc">-</span> fit_co2<span class="sc">$</span>results<span class="sc">$</span>b_star)</span>
 <span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a><span class="co">#&gt;       Min.    1st Qu.     Median       Mean    3rd Qu.       Max. </span></span>
-<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a><span class="co">#&gt; -1.421e-14  2.842e-14  4.263e-14  8.148e-13  6.573e-14  1.027e-11</span></span></code></pre></div>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a><span class="co">#&gt; -2.126e-11 -1.172e-13 -4.619e-14 -1.319e-12  0.000e+00  2.842e-14</span></span></code></pre></div>
 <p>The three SO2 violators show the documented boundary behaviour: a
 plant violating another pollutant’s identity loses its self-reference,
 so its CO2 score can exceed 1 (its MB-consistent projection emits more
@@ -464,8 +464,8 @@ higher-carbon coal.</p>
 <span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a><span class="co">#&gt; [1] 0.5354456</span></span></code></pre></div>
 <p>Each plant’s cap now uses its own coefficients, so two plants with
 the same fuel bill face different materials-balance ceilings. The input
-coefficients do not enter the reduced form of the faithful
-<code>&quot;wgd&quot;</code> programme (only the output coefficients <span class="math inline">\(v_i\)</span> do); producer-specific <span class="math inline">\(u\)</span> instead surfaces in the
+coefficients do not enter the reduced form of the <code>&quot;wgd&quot;</code>
+programme (only the output coefficients <span class="math inline">\(v_i\)</span> do); producer-specific <span class="math inline">\(u\)</span> instead surfaces in the
 <code>quality</code> component of the decomposition below.</p>
 </div>
 <div id="the-five-component-decomposition" class="section level2">
