@@ -346,23 +346,32 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <h2>Productivity change with a bad output</h2>
 <p>The Malmquist-Luenberger index (Chung, Färe and Grosskopf 1997)
 measures productivity change when part of the output is undesirable, by
-scoring each unit on a directional distance function (Chambers, Chung
-and Färe 1996) that expands the good output and contracts the bad output
-together. The adjacent-period version can be infeasible across periods
-(Aparicio, Pastor and Zofío 2013); the global index of Oh (2010) pools
-every period into one reference technology, which removes the
-infeasibility and makes the index circular. <code>pgt_ml()</code>
-computes it under the pollution-generating technology and splits it into
-efficiency change and best-practice change, <span class="math inline">\(GML = EC \times BPC\)</span>, with <span class="math inline">\(GML &gt; 1\)</span> signalling growth.</p>
+scoring each unit on a directional output distance function, the output
+counterpart of the directional input distance function of Chambers,
+Chung and Färe (1996), that expands the good output and contracts the
+bad output together. The adjacent-period version can be infeasible
+across periods; the global index of Oh (2010) pools every period into
+one reference technology, which removes the infeasibility and makes the
+index circular. It does not address the separate inconsistency shown by
+Aparicio, Pastor and Zofío (2013), in which the technical-change
+component signals regress although the frontier moves toward more good
+and less bad output. <code>pgt_ml()</code> computes the global index
+under the pollution-generating technology and splits it into efficiency
+change and best-practice gap change, <span class="math inline">\(GML =
+EC \times BPC\)</span>, with <span class="math inline">\(GML &gt;
+1\)</span> signalling growth.</p>
 <p>This estimator is experimental: the global Malmquist-Luenberger index
 under a materials-balance technology is not yet settled in the
 literature, and the default technologies do not re-impose the per-DMU
 materials-balance cap on the projected point.</p>
 <p>The <code>technology</code> argument selects the reference
 technology. The default <code>&quot;wd&quot;</code> imposes weak disposability of
-the bad output in the Kuosmanen (2005) form; this is the technology
-under which Chung, Färe and Grosskopf (1997) and Oh (2010) define the
-index, so it is the comparator under which the index is defined. The
+the bad output in the Kuosmanen (2005) form. With
+<code>returns = &quot;crs&quot;</code> its abatement weights are redundant and,
+for one bad output, it is the constant-returns technology of Chung, Färe
+and Grosskopf (1997, Eq. 3.9), which Oh (2010) also uses; both papers
+index several bad outputs jointly, whereas <code>pgt_ml()</code> indexes
+one pollutant at a time; the variable-returns default extends it. The
 <code>&quot;input_envelope&quot;</code> and <code>&quot;envelope&quot;</code> options treat
 the bad output as reducible to the peer emission envelope and are
 exploratory companions; the input-keeping variant matches the shape of
@@ -393,8 +402,8 @@ the same output is produced with 15 percent less emission.</p>
 <span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a><span class="co">#&gt; Geometric mean by period transition:</span></span>
 <span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a><span class="co">#&gt;  to  n   gml ec   bpc</span></span>
 <span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a><span class="co">#&gt;   2 15 1.036  1 1.036</span></span></code></pre></div>
-<p>The median index exceeds 1, and best-practice change carries it: the
-frontier moved out while each unit kept its position relative to the
+<p>The median index exceeds 1, and best-practice gap change carries it:
+the frontier moved out while each unit kept its position relative to the
 frontier, so efficiency change stays near 1.</p>
 </div>
 <div id="a-real-rice-panel" class="section level3">
@@ -440,13 +449,17 @@ gives a nitrogen-based productivity index.</p>
 <p>Efficiency scores are point estimates from a finite sample of DMUs.
 <code>boot_pgt()</code> gauges their sampling variability by re-solving
 each unit against random subsamples of the reference set (m out of n,
-without replacement), the resampling scheme with the firmest footing for
-boundary estimators (Politis and Romano 1994; Politis, Romano and Wolf
-1999; Kneip, Simar and Wilson 2008). <code>boot_pgt()</code> covers
-cross-sectional efficiency scores only; no inference is currently
-available for the <code>pgt_ml()</code> index. The example takes the
-sixty plants of one year of the synthetic <code>steeldemo</code> panel,
-an independent cross-section.</p>
+without replacement). Subsampling gives valid intervals under minimal
+assumptions (Politis and Romano 1994; Politis, Romano and Wolf 1999);
+for DEA, Kneip, Simar and Wilson (2008) prove the m-out-of-n bootstrap,
+which draws with replacement, consistent under variable returns for the
+score of a fixed point, and Simar and Wilson (2011) note that the
+resampling can also be done without replacement, although in their
+simulations resampling with replacement gave coverage closer to nominal.
+<code>boot_pgt()</code> covers cross-sectional efficiency scores only;
+no inference is currently available for the <code>pgt_ml()</code> index.
+The example takes the sixty plants of one year of the synthetic
+<code>steeldemo</code> panel, an independent cross-section.</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">data</span>(steeldemo)</span>
 <span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>steel60 <span class="ot">&lt;-</span> steeldemo[steeldemo<span class="sc">$</span>year <span class="sc">==</span> <span class="dv">2021</span>, ]</span>
 <span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>tech <span class="ot">&lt;-</span> <span class="fu">pgt_tech</span>(</span>
@@ -508,26 +521,35 @@ per-DMU convergence rate is reused for the mean (Kneip, Simar and Wilson
 <p>The heuristic label invites the obvious question: how close to
 nominal do these intervals get when the truth is known? The package
 ships a Monte Carlo study (<code>inst/simulations/coverage.R</code>) for
-the envelope model under a data-generating process with a known linear
-frontier <span class="math inline">\(b_{\min}(y) = 2 + 0.5y\)</span> and
-exponential inefficiency, where the true score <span class="math inline">\(\theta = b_{\min}(y)/b\)</span> is the estimand.
-Two hundred replicates per sample size, <code>B = 100</code>, nominal
-level 95 per cent; the table reports the precomputed results shipped
-with the package.</p>
+the envelope model with exponential inefficiency and two known
+frontiers, the affine <span class="math inline">\(b_{\min}(y) = 2 +
+0.5y\)</span> and the curved <span class="math inline">\(b_{\min}(y) = 1
++ 0.05y^2\)</span>, where the true score <span class="math inline">\(\theta = b_{\min}(y)/b\)</span> is the estimand.
+Two hundred replicates per cell, <code>B = 100</code>, nominal level 95
+per cent. A unit gets no interval when fewer than <code>B/2</code> of
+its subsample programmes are feasible, so the study reports
+availability, coverage among units with an interval (“given interval”)
+and the share of all units whose interval exists and covers
+(“delivered”). The table shows the cells at the defaults <span class="math inline">\(m = \mathrm{round}(L^{0.7})\)</span> and <span class="math inline">\(\kappa = 2/3\)</span> from the precomputed results
+shipped with the package.</p>
 <table>
 <colgroup>
-<col width="5%" />
+<col width="9%" />
+<col width="4%" />
+<col width="10%" />
 <col width="16%" />
+<col width="10%" />
+<col width="25%" />
+<col width="9%" />
 <col width="13%" />
-<col width="33%" />
-<col width="13%" />
-<col width="17%" />
 </colgroup>
 <thead>
 <tr class="header">
+<th align="left">frontier</th>
 <th align="right">L</th>
-<th align="right">replicates</th>
-<th align="right">all DMUs</th>
+<th align="right">available</th>
+<th align="right">given interval</th>
+<th align="right">delivered</th>
 <th align="right">frontier (theta &gt; 0.9)</th>
 <th align="right">interior</th>
 <th align="right">group means</th>
@@ -535,29 +557,57 @@ with the package.</p>
 </thead>
 <tbody>
 <tr class="odd">
+<td align="left">affine</td>
 <td align="right">50</td>
-<td align="right">200</td>
-<td align="right">0.943</td>
-<td align="right">0.957</td>
-<td align="right">0.937</td>
+<td align="right">0.973</td>
+<td align="right">0.965</td>
+<td align="right">0.939</td>
+<td align="right">0.978</td>
+<td align="right">0.960</td>
 <td align="right">0.950</td>
 </tr>
 <tr class="even">
+<td align="left">affine</td>
 <td align="right">100</td>
-<td align="right">200</td>
-<td align="right">0.970</td>
-<td align="right">0.980</td>
-<td align="right">0.966</td>
+<td align="right">0.981</td>
+<td align="right">0.984</td>
+<td align="right">0.965</td>
+<td align="right">0.991</td>
+<td align="right">0.981</td>
 <td align="right">0.978</td>
+</tr>
+<tr class="odd">
+<td align="left">curved</td>
+<td align="right">50</td>
+<td align="right">0.973</td>
+<td align="right">0.928</td>
+<td align="right">0.903</td>
+<td align="right">0.953</td>
+<td align="right">0.919</td>
+<td align="right">0.948</td>
+</tr>
+<tr class="even">
+<td align="left">curved</td>
+<td align="right">100</td>
+<td align="right">0.981</td>
+<td align="right">0.923</td>
+<td align="right">0.905</td>
+<td align="right">0.946</td>
+<td align="right">0.913</td>
+<td align="right">0.917</td>
 </tr>
 </tbody>
 </table>
-<p>Empirical coverage sits near the nominal 95 per cent for both sample
-sizes, for frontier and interior units alike, and errs on the
-conservative side at the larger sample. One simulation under one
-data-generating process is evidence, not proof: the DEA rate remains
-borrowed for the materials-balance programmes, which is why the
-intervals keep their heuristic label.</p>
+<p>On the affine frontier the intervals over-cover, and on the curved
+one they under-cover by two to three points at both sample sizes. The
+missing intervals fall on the units with the largest output. The shipped
+results also vary <code>m</code> and <code>kappa</code> at
+<code>L = 100</code>: a larger subsample or a faster rate narrows the
+intervals and lowers coverage, to 0.77 under <code>kappa = 1</code> on
+the curved frontier. One simulation design is evidence, not proof: the
+DEA rate remains borrowed for the materials-balance programmes, which is
+why the intervals keep their heuristic label and why
+<code>boot_pgt_sensitivity()</code> belongs in the workflow.</p>
 </div>
 </div>
 <div id="references" class="section level2">

@@ -20,14 +20,18 @@ library(pgt)
 
 The Malmquist-Luenberger index (Chung, Färe and Grosskopf 1997) measures
 productivity change when part of the output is undesirable, by scoring
-each unit on a directional distance function (Chambers, Chung and Färe
-1996) that expands the good output and contracts the bad output
-together. The adjacent-period version can be infeasible across periods
-(Aparicio, Pastor and Zofío 2013); the global
-index of Oh (2010) pools every period into one reference technology,
-which removes the infeasibility and makes the index circular. `pgt_ml()`
-computes it under the pollution-generating technology and splits it into
-efficiency change and best-practice change,
+each unit on a directional output distance function, the output
+counterpart of the directional input distance function of Chambers,
+Chung and Färe (1996), that expands the good output and contracts the
+bad output together. The adjacent-period version can be infeasible
+across periods; the global index of Oh (2010) pools every period into
+one reference technology, which removes the infeasibility and makes
+the index circular. It does not address the separate inconsistency
+shown by Aparicio, Pastor and Zofío (2013), in which the
+technical-change component signals regress although the frontier
+moves toward more good and less bad output. `pgt_ml()`
+computes the global index under the pollution-generating technology
+and splits it into efficiency change and best-practice gap change,
 $GML = EC \times BPC$, with $GML > 1$ signalling growth.
 
 This estimator is experimental: the global Malmquist-Luenberger index
@@ -37,9 +41,12 @@ materials-balance cap on the projected point.
 
 The `technology` argument selects the reference technology. The
 default `"wd"` imposes weak disposability of the bad output in the
-Kuosmanen (2005) form; this is the technology under which Chung, Färe
-and Grosskopf (1997) and Oh (2010) define the index, so it is the
-comparator under which the index is defined. The `"input_envelope"` and `"envelope"` options
+Kuosmanen (2005) form. With `returns = "crs"` its abatement weights
+are redundant and, for one bad output, it is the constant-returns
+technology of Chung, Färe and Grosskopf (1997, Eq. 3.9), which Oh (2010)
+also uses; both papers index several bad outputs jointly, whereas
+`pgt_ml()` indexes one pollutant at a time; the
+variable-returns default extends it. The `"input_envelope"` and `"envelope"` options
 treat the bad output as reducible to the peer emission envelope and
 are exploratory companions; the input-keeping variant matches the
 shape of the input-fixed benchmark of `pgt()` rather than its Eq. 6
@@ -63,7 +70,7 @@ ml <- pgt_ml(panel)
 summary(ml)
 ```
 
-The median index exceeds 1, and best-practice change carries it: the
+The median index exceeds 1, and best-practice gap change carries it: the
 frontier moved out while each unit kept its position relative to the
 frontier, so efficiency change stays near 1.
 
@@ -95,9 +102,14 @@ summary(rice_ml)
 Efficiency scores are point estimates from a finite sample of DMUs.
 `boot_pgt()` gauges their sampling variability by re-solving each unit
 against random subsamples of the reference set (m out of n, without
-replacement), the resampling scheme with the firmest footing for
-boundary estimators (Politis and Romano 1994; Politis, Romano and Wolf
-1999; Kneip, Simar and Wilson 2008). `boot_pgt()` covers cross-sectional
+replacement). Subsampling gives valid intervals under minimal
+assumptions (Politis and Romano 1994; Politis, Romano and Wolf 1999);
+for DEA, Kneip, Simar and Wilson (2008) prove the m-out-of-n
+bootstrap, which draws with replacement, consistent under variable
+returns for the score of a fixed point, and Simar and Wilson (2011) note
+that the resampling can also be done without replacement, although in
+their simulations resampling with replacement gave coverage closer to
+nominal. `boot_pgt()` covers cross-sectional
 efficiency scores only; no inference is currently available for the
 `pgt_ml()` index. The example takes the sixty plants of one year of
 the synthetic `steeldemo` panel, an independent cross-section.
@@ -155,30 +167,43 @@ aggregates of efficiency scores).
 The heuristic label invites the obvious question: how close to nominal
 do these intervals get when the truth is known? The package ships a
 Monte Carlo study (`inst/simulations/coverage.R`) for the envelope
-model under a data-generating process with a known linear frontier
-$b_{\min}(y) = 2 + 0.5y$ and exponential inefficiency, where the true
-score $\theta = b_{\min}(y)/b$ is the estimand. Two hundred replicates
-per sample size, `B = 100`, nominal level 95 per cent; the table
-reports the precomputed results shipped with the package.
+model with exponential inefficiency and two known frontiers, the
+affine $b_{\min}(y) = 2 + 0.5y$ and the curved
+$b_{\min}(y) = 1 + 0.05y^2$, where the true score
+$\theta = b_{\min}(y)/b$ is the estimand. Two hundred replicates per
+cell, `B = 100`, nominal level 95 per cent. A unit gets no interval
+when fewer than `B/2` of its subsample programmes are feasible, so the
+study reports availability, coverage among units with an interval
+("given interval") and the share of all units whose interval exists
+and covers ("delivered"). The table shows the cells at the defaults
+$m = \mathrm{round}(L^{0.7})$ and $\kappa = 2/3$ from the precomputed
+results shipped with the package.
 
 ```{r, echo = FALSE}
 cov <- read.csv(system.file("simulations", "coverage-results.csv",
                             package = "pgt"))
+dflt <- abs(cov$kappa - 2 / 3) < 1e-9 & cov$m == round(cov$L^0.7)
 knitr::kable(
-  cov[, c("L", "reps", "coverage_all", "coverage_frontier",
-          "coverage_interior", "coverage_group_means")],
-  digits = 3,
-  col.names = c("L", "replicates", "all DMUs", "frontier (theta > 0.9)",
-                "interior", "group means")
+  cov[dflt, c("dgp", "L", "available", "coverage_cond",
+              "coverage_delivered", "coverage_frontier",
+              "coverage_interior", "coverage_group_means")],
+  digits = 3, row.names = FALSE,
+  col.names = c("frontier", "L", "available", "given interval",
+                "delivered", "frontier (theta > 0.9)", "interior",
+                "group means")
 )
 ```
 
-Empirical coverage sits near the nominal 95 per cent for both sample
-sizes, for frontier and interior units alike, and errs on the
-conservative side at the larger sample. One simulation under one
-data-generating process is evidence, not proof: the DEA rate remains
-borrowed for the materials-balance programmes, which is why the
-intervals keep their heuristic label.
+On the affine frontier the intervals over-cover, and on the curved one
+they under-cover by two to three points at both sample sizes. The
+missing intervals fall on the units with the largest output. The
+shipped results also vary `m` and `kappa` at `L = 100`: a larger
+subsample or a faster rate narrows the intervals and lowers coverage,
+to 0.77 under `kappa = 1` on the curved frontier. One simulation
+design is evidence, not proof: the DEA rate remains borrowed for the
+materials-balance programmes, which is why the intervals keep their
+heuristic label and why `boot_pgt_sensitivity()` belongs in the
+workflow.
 
 ## References
 

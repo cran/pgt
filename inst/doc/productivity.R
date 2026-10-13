@@ -53,11 +53,14 @@ boot_pgt_sensitivity(tech, model = "wgd", B = 25,
 ## ----echo = FALSE-------------------------------------------------------------
 cov <- read.csv(system.file("simulations", "coverage-results.csv",
                             package = "pgt"))
+dflt <- abs(cov$kappa - 2 / 3) < 1e-9 & cov$m == round(cov$L^0.7)
 knitr::kable(
-  cov[, c("L", "reps", "coverage_all", "coverage_frontier",
-          "coverage_interior", "coverage_group_means")],
-  digits = 3,
-  col.names = c("L", "replicates", "all DMUs", "frontier (theta > 0.9)",
-                "interior", "group means")
+  cov[dflt, c("dgp", "L", "available", "coverage_cond",
+              "coverage_delivered", "coverage_frontier",
+              "coverage_interior", "coverage_group_means")],
+  digits = 3, row.names = FALSE,
+  col.names = c("frontier", "L", "available", "given interval",
+                "delivered", "frontier (theta > 0.9)", "interior",
+                "group means")
 )
 

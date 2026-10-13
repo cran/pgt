@@ -343,27 +343,24 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(pgt)</span></code></pre></div>
 <p>The estimators with a numerical example printed in their source paper
-are validated against it: the weak-G-disposability and directional
-models against Rødseth (2025) Tables 2 and 3, and the by-production
-model against the analytic Example 1 of Murty, Russell and Levkoff
-(2012). These replications run as unit tests on every check; this
-vignette reproduces them in the open. The remaining estimators carry
-analytic hand-computed checks in the test suite rather than
-published-table replications; the final section shows the
-internal-consistency check for the materials-balance cost model.</p>
+are validated against it: the weak-G-disposability model of Hampf and
+Rødseth (2015) and its directional representation against Rødseth (2025)
+Tables 2 and 3, and the by-production model against the analytic Example
+1 of Murty, Russell and Levkoff (2012). These replications run as unit
+tests on every check; this vignette reproduces them in the open. The
+remaining estimators carry analytic hand-computed checks in the test
+suite rather than published-table replications; the final section shows
+the internal-consistency check for the materials-balance cost model.</p>
 <div id="rødseth-2025-table-2-minimal-controlled-emissions" class="section level2">
 <h2>Rødseth (2025), Table 2: minimal controlled emissions</h2>
 <p>The <code>pigfarms</code> data is Table 1 of Rødseth (2025): five
 pig-finishing farms with feed and piglets as material inputs, meat as
 the good output, and controlled, uncontrolled and abatement emission
-columns for nitrogen. Because the paper does not print the nitrogen
-coefficients of feed and piglets, the uncontrolled-emission aggregate
-replaces them as the single material carrier (<span class="math inline">\(u = 1\)</span>, <span class="math inline">\(v =
-0\)</span>); the uncontrolled emission equals controlled plus abatement,
-so the accounts close exactly. Keeping all five columns as inputs with
-zero material coefficients on feed and piglets (the mapping in the
-<code>pigfarms</code> help page) yields the same Table 2 minima; the
-test suite asserts the two mappings agree.</p>
+columns for nitrogen. The paper prints no nitrogen coefficients for the
+inputs or the meat. The good-output coefficient <span class="math inline">\(v = 7/6\)</span> follows from farms A and B, which
+share inputs: their meat differs by 3 and their uncontrolled emissions
+by 3.5. Each farm’s feed coefficient then closes its account exactly to
+the uncontrolled column.</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">data</span>(pigfarms)</span>
 <span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>pigfarms</span>
 <span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="co">#&gt;   farm feed piglet labor capital meat controlled uncontrolled abatement</span></span>
@@ -372,104 +369,128 @@ test suite asserts the two mappings agree.</p>
 <span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a><span class="co">#&gt; 3    C   21      2    50     100    7         20         20.2       0.2</span></span>
 <span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a><span class="co">#&gt; 4    D   24      3    50     100   11         20         20.4       0.4</span></span>
 <span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a><span class="co">#&gt; 5    E   24      3    50     100   10         21         21.6       0.6</span></span></code></pre></div>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>tech <span class="ot">&lt;-</span> <span class="fu">pgt_tech</span>(</span>
-<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>  <span class="at">x =</span> pigfarms[, <span class="fu">c</span>(<span class="st">&quot;uncontrolled&quot;</span>, <span class="st">&quot;labor&quot;</span>, <span class="st">&quot;capital&quot;</span>)],</span>
-<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>  <span class="at">y =</span> pigfarms<span class="sc">$</span>meat,</span>
-<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>  <span class="at">b =</span> pigfarms<span class="sc">$</span>controlled,</span>
-<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>  <span class="at">u =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">0</span>),</span>
-<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>  <span class="at">a =</span> pigfarms<span class="sc">$</span>abatement,</span>
-<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>  <span class="at">id =</span> pigfarms<span class="sc">$</span>farm</span>
-<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a>)</span>
-<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">pgt</span>(tech, <span class="at">model =</span> <span class="st">&quot;wgd&quot;</span>)</span>
-<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">farm =</span> fit<span class="sc">$</span>results<span class="sc">$</span>id, <span class="at">b_star =</span> fit<span class="sc">$</span>results<span class="sc">$</span>b_star,</span>
-<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a>           <span class="at">z_star =</span> fit<span class="sc">$</span>results<span class="sc">$</span>z_star, <span class="at">a_star =</span> fit<span class="sc">$</span>results<span class="sc">$</span>a_star)</span>
-<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a><span class="co">#&gt;   farm b_star z_star a_star</span></span>
-<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a><span class="co">#&gt; 1    A     16   16.7    0.7</span></span>
-<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a><span class="co">#&gt; 2    B     16   16.7    0.7</span></span>
-<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a><span class="co">#&gt; 3    C     16   16.7    0.7</span></span>
-<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a><span class="co">#&gt; 4    D     20   20.4    0.4</span></span>
-<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a><span class="co">#&gt; 5    E     16   16.7    0.7</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>v <span class="ot">&lt;-</span> <span class="dv">7</span> <span class="sc">/</span> <span class="dv">6</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>u_feed <span class="ot">&lt;-</span> (pigfarms<span class="sc">$</span>uncontrolled <span class="sc">+</span> v <span class="sc">*</span> pigfarms<span class="sc">$</span>meat) <span class="sc">/</span> pigfarms<span class="sc">$</span>feed</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>tech <span class="ot">&lt;-</span> <span class="fu">pgt_tech</span>(</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>  <span class="at">x =</span> pigfarms[, <span class="fu">c</span>(<span class="st">&quot;feed&quot;</span>, <span class="st">&quot;piglet&quot;</span>, <span class="st">&quot;labor&quot;</span>, <span class="st">&quot;capital&quot;</span>)],</span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>  <span class="at">y =</span> pigfarms<span class="sc">$</span>meat,</span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>  <span class="at">b =</span> pigfarms<span class="sc">$</span>controlled,</span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>  <span class="at">u =</span> <span class="fu">cbind</span>(u_feed, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>),</span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a>  <span class="at">v =</span> v,</span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a>  <span class="at">a =</span> pigfarms<span class="sc">$</span>abatement,</span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a>  <span class="at">id =</span> pigfarms<span class="sc">$</span>farm</span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a>)</span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">pgt</span>(tech, <span class="at">model =</span> <span class="st">&quot;wgd&quot;</span>)</span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">farm =</span> fit<span class="sc">$</span>results<span class="sc">$</span>id, <span class="at">b_star =</span> fit<span class="sc">$</span>results<span class="sc">$</span>b_star,</span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a>           <span class="at">z_star =</span> fit<span class="sc">$</span>results<span class="sc">$</span>z_star, <span class="at">a_star =</span> fit<span class="sc">$</span>results<span class="sc">$</span>a_star)</span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a><span class="co">#&gt;   farm b_star z_star a_star</span></span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a><span class="co">#&gt; 1    A     16   16.7    0.7</span></span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a><span class="co">#&gt; 2    B     16   20.2    4.2</span></span>
+<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a><span class="co">#&gt; 3    C     16   20.2    4.2</span></span>
+<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a><span class="co">#&gt; 4    D     20   20.4    0.4</span></span>
+<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a><span class="co">#&gt; 5    E     16   16.7    0.7</span></span></code></pre></div>
 <p>The minimal controlled emissions are <span class="math inline">\((16,
 16, 16, 20, 16)\)</span>, which match the paper’s Table 2. Because the
 abatement output is observed, the fit also reports the projection’s
 implied uncontrolled emission <code>z_star</code> and abatement
-<code>a_star</code>; for farms A, D and E these match the paper’s Table
-2 uncontrolled and abatement entries, while for the frontier farms the
-optimal peer mix is not unique and the split between <code>z_star</code>
-and <code>a_star</code> is solver-dependent.</p>
+<code>a_star</code>, and for every farm these match the paper’s Table 2
+uncontrolled and abatement entries. The retained content of the meat
+decides the peer of farms B and C: at <span class="math inline">\(v =
+0\)</span> farms A and B would tie as peers at <span class="math inline">\(b = 16\)</span>, but the three extra units of meat
+that farm A produces retain 3.5 units of nitrogen, so farm B is the
+unique peer. Setting <span class="math inline">\(v = 0\)</span> (for
+example by using the uncontrolled column as the only carrier input,
+<span class="math inline">\(u = 1\)</span>) leaves the minima unchanged
+but makes the targets of farms B and C solver-dependent.</p>
 </div>
 <div id="rødseth-2025-table-3-the-directional-representation" class="section level2">
 <h2>Rødseth (2025), Table 3: the directional representation</h2>
-<p>The factorially determined multi-output model (Eq. 14, abatement
-fixed at each farm’s own level) jointly expands the good output and
-contracts the bad output. Its good-output coefficient <span class="math inline">\(v = 7/6\)</span> follows from farms A and B, which
-share inputs: their meat differs by 3 and their uncontrolled emissions
-by 3.5. Each farm’s feed coefficient closes its account to the
-uncontrolled column.</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>v <span class="ot">&lt;-</span> <span class="dv">7</span> <span class="sc">/</span> <span class="dv">6</span></span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>u_feed <span class="ot">&lt;-</span> (pigfarms<span class="sc">$</span>uncontrolled <span class="sc">+</span> v <span class="sc">*</span> pigfarms<span class="sc">$</span>meat) <span class="sc">/</span> pigfarms<span class="sc">$</span>feed</span>
-<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>tech3 <span class="ot">&lt;-</span> <span class="fu">pgt_tech</span>(</span>
-<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>  <span class="at">x =</span> pigfarms[, <span class="fu">c</span>(<span class="st">&quot;feed&quot;</span>, <span class="st">&quot;piglet&quot;</span>, <span class="st">&quot;labor&quot;</span>, <span class="st">&quot;capital&quot;</span>)],</span>
-<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>  <span class="at">y =</span> pigfarms<span class="sc">$</span>meat,</span>
-<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>  <span class="at">b =</span> pigfarms<span class="sc">$</span>controlled,</span>
-<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>  <span class="at">u =</span> <span class="fu">cbind</span>(u_feed, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>),</span>
-<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>  <span class="at">v =</span> v,</span>
-<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a>  <span class="at">a =</span> pigfarms<span class="sc">$</span>abatement,</span>
-<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a>  <span class="at">id =</span> pigfarms<span class="sc">$</span>farm</span>
-<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a>)</span>
-<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a>fdmo <span class="ot">&lt;-</span> <span class="fu">pgt</span>(tech3, <span class="at">model =</span> <span class="st">&quot;fdmo&quot;</span>)</span>
-<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a>r3 <span class="ot">&lt;-</span> fdmo<span class="sc">$</span>results</span>
-<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a>comparison <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a>  <span class="at">farm =</span> r3<span class="sc">$</span>id,</span>
-<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a>  <span class="at">good_eff =</span> <span class="fu">round</span>(r3<span class="sc">$</span>good_eff, <span class="dv">3</span>),</span>
-<span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a>  <span class="at">paper_good =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">3</span>, <span class="dv">0</span>, <span class="fl">0.8</span>),</span>
-<span id="cb4-18"><a href="#cb4-18" tabindex="-1"></a>  <span class="at">bad_eff =</span> <span class="fu">round</span>(r3<span class="sc">$</span>bad_eff, <span class="dv">3</span>),</span>
-<span id="cb4-19"><a href="#cb4-19" tabindex="-1"></a>  <span class="at">paper_bad =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>, <span class="fl">3.5</span>, <span class="dv">0</span>, <span class="fl">1.0</span>),</span>
-<span id="cb4-20"><a href="#cb4-20" tabindex="-1"></a>  <span class="at">maximal_y =</span> <span class="fu">round</span>(r3<span class="sc">$</span>maximal_y, <span class="dv">3</span>)</span>
-<span id="cb4-21"><a href="#cb4-21" tabindex="-1"></a>)</span>
-<span id="cb4-22"><a href="#cb4-22" tabindex="-1"></a>comparison</span>
-<span id="cb4-23"><a href="#cb4-23" tabindex="-1"></a><span class="co">#&gt;   farm good_eff paper_good bad_eff paper_bad maximal_y</span></span>
-<span id="cb4-24"><a href="#cb4-24" tabindex="-1"></a><span class="co">#&gt; 1    A    0.000        0.0   0.000       0.0    10.000</span></span>
-<span id="cb4-25"><a href="#cb4-25" tabindex="-1"></a><span class="co">#&gt; 2    B    0.000        0.0   0.000       0.0     7.000</span></span>
-<span id="cb4-26"><a href="#cb4-26" tabindex="-1"></a><span class="co">#&gt; 3    C    3.000        3.0   3.500       3.5    10.000</span></span>
-<span id="cb4-27"><a href="#cb4-27" tabindex="-1"></a><span class="co">#&gt; 4    D    0.000        0.0   0.000       0.0    11.000</span></span>
-<span id="cb4-28"><a href="#cb4-28" tabindex="-1"></a><span class="co">#&gt; 5    E    0.789        0.8   0.921       1.0    10.789</span></span></code></pre></div>
+<p>The directional model (Eq. 13, the indirect form of the directional
+programme of Eq. 12, with abatement fixed at each farm’s own level,
+which Proposition 4 equates with the factorially determined multi-output
+form of Eq. 14) jointly expands the good output and contracts the bad
+output. It uses the same technology.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>fdmo <span class="ot">&lt;-</span> <span class="fu">pgt</span>(tech, <span class="at">model =</span> <span class="st">&quot;fdmo&quot;</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>r3 <span class="ot">&lt;-</span> fdmo<span class="sc">$</span>results</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>comparison <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>  <span class="at">farm =</span> r3<span class="sc">$</span>id,</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>  <span class="at">good_eff =</span> <span class="fu">round</span>(r3<span class="sc">$</span>good_eff, <span class="dv">3</span>),</span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>  <span class="at">paper_good =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">3</span>, <span class="dv">0</span>, <span class="fl">0.8</span>),</span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>  <span class="at">bad_eff =</span> <span class="fu">round</span>(r3<span class="sc">$</span>bad_eff, <span class="dv">3</span>),</span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>  <span class="at">paper_bad =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>, <span class="fl">3.5</span>, <span class="dv">0</span>, <span class="fl">1.0</span>),</span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a>  <span class="at">maximal_y =</span> <span class="fu">round</span>(r3<span class="sc">$</span>maximal_y, <span class="dv">3</span>)</span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a>)</span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a>comparison</span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a><span class="co">#&gt;   farm good_eff paper_good bad_eff paper_bad maximal_y</span></span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a><span class="co">#&gt; 1    A    0.000        0.0   0.000       0.0    10.000</span></span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a><span class="co">#&gt; 2    B    0.000        0.0   0.000       0.0     7.000</span></span>
+<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a><span class="co">#&gt; 3    C    3.000        3.0   3.500       3.5    10.000</span></span>
+<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a><span class="co">#&gt; 4    D    0.000        0.0   0.000       0.0    11.000</span></span>
+<span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a><span class="co">#&gt; 5    E    0.789        0.8   0.921       1.0    10.789</span></span></code></pre></div>
 <p>Farms A, B and D are on the frontier (gross inefficiency 0), and farm
 C expands its good output by 3 and cuts its bad output by 3.5, a gross
-inefficiency of 6.5: farms A to D reproduce Table 3 exactly. Farm E is
-the one divergence, shown side by side above. The paper prints <span class="math inline">\((\theta_y, \theta_b) = (0.8, 1.0)\)</span>; the
-package returns <span class="math inline">\((0.789, 0.921)\)</span>. The
-two cannot both be exact: whenever the uncontrolled emission equals
-controlled plus abatement, the materials-balance row forces <span class="math inline">\(\theta_b = v\,\theta_y\)</span> for every farm,
-and <span class="math inline">\(7/6 \times 0.8 \approx 0.93\)</span>,
-not <span class="math inline">\(1.0\)</span>. The package’s pair
-satisfies the forced ratio to machine precision, so we read the printed
-row as rounded; farm E’s maximal good output still rounds to the paper’s
-10.8.</p>
+inefficiency of 6.5: farms A to D reproduce Table 3. Farm E is the one
+divergence, shown side by side above. The paper prints <span class="math inline">\((\theta_y, \theta_b) = (0.8, 1.0)\)</span>; on the
+printed data the package returns <span class="math inline">\((0.789,
+0.921)\)</span>, the exact optimum of the programme. The paper’s data
+are printed to one decimal, so the divergence is conditional on treating
+them as exact. Common coefficients <span class="math inline">\(v =
+7/6\)</span>, <span class="math inline">\(u_{\text{feed}} =
+31/25\)</span> and <span class="math inline">\(u_{\text{piglet}} =
+349/300\)</span>, with the printed inputs, meat and controlled
+emissions, give uncontrolled emissions and abatement that round to the
+printed columns, and a fitted Table 3 whose every row, farm E included,
+rounds to the printed one:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>u_c <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="at">feed =</span> <span class="dv">31</span> <span class="sc">/</span> <span class="dv">25</span>, <span class="at">piglet =</span> <span class="dv">349</span> <span class="sc">/</span> <span class="dv">300</span>, <span class="at">labor =</span> <span class="dv">0</span>, <span class="at">capital =</span> <span class="dv">0</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>x_pig <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(pigfarms[, <span class="fu">names</span>(u_c)])</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>z_c <span class="ot">&lt;-</span> <span class="fu">as.vector</span>(x_pig <span class="sc">%*%</span> u_c) <span class="sc">-</span> v <span class="sc">*</span> pigfarms<span class="sc">$</span>meat</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>a_c <span class="ot">&lt;-</span> z_c <span class="sc">-</span> pigfarms<span class="sc">$</span>controlled</span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a><span class="fu">c</span>(<span class="at">uncontrolled =</span> <span class="fu">all</span>(<span class="fu">round</span>(z_c, <span class="dv">1</span>) <span class="sc">==</span> pigfarms<span class="sc">$</span>uncontrolled),</span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>  <span class="at">abatement =</span> <span class="fu">all</span>(<span class="fu">round</span>(a_c, <span class="dv">1</span>) <span class="sc">==</span> pigfarms<span class="sc">$</span>abatement))</span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a><span class="co">#&gt; uncontrolled    abatement </span></span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a><span class="co">#&gt;         TRUE         TRUE</span></span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a>rc <span class="ot">&lt;-</span> <span class="fu">pgt</span>(<span class="fu">pgt_tech</span>(<span class="at">x =</span> x_pig, <span class="at">y =</span> pigfarms<span class="sc">$</span>meat, <span class="at">b =</span> pigfarms<span class="sc">$</span>controlled,</span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a>                   <span class="at">u =</span> u_c, <span class="at">v =</span> v, <span class="at">a =</span> a_c, <span class="at">id =</span> pigfarms<span class="sc">$</span>farm),</span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a>          <span class="at">model =</span> <span class="st">&quot;fdmo&quot;</span>)<span class="sc">$</span>results</span>
+<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">farm =</span> rc<span class="sc">$</span>id, <span class="at">gross =</span> <span class="fu">round</span>(rc<span class="sc">$</span>gross, <span class="dv">3</span>),</span>
+<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a>           <span class="at">good_eff =</span> <span class="fu">round</span>(rc<span class="sc">$</span>good_eff, <span class="dv">3</span>),</span>
+<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a>           <span class="at">bad_eff =</span> <span class="fu">round</span>(rc<span class="sc">$</span>bad_eff, <span class="dv">3</span>),</span>
+<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a>           <span class="at">maximal_y =</span> <span class="fu">round</span>(rc<span class="sc">$</span>maximal_y, <span class="dv">3</span>))</span>
+<span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a><span class="co">#&gt;   farm gross good_eff bad_eff maximal_y</span></span>
+<span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a><span class="co">#&gt; 1    A 0.000    0.000   0.000    10.000</span></span>
+<span id="cb5-18"><a href="#cb5-18" tabindex="-1"></a><span class="co">#&gt; 2    B 0.000    0.000   0.000     7.000</span></span>
+<span id="cb5-19"><a href="#cb5-19" tabindex="-1"></a><span class="co">#&gt; 3    C 6.500    3.000   3.500    10.000</span></span>
+<span id="cb5-20"><a href="#cb5-20" tabindex="-1"></a><span class="co">#&gt; 4    D 0.000    0.000   0.000    11.000</span></span>
+<span id="cb5-21"><a href="#cb5-21" tabindex="-1"></a><span class="co">#&gt; 5    E 1.785    0.824   0.961    10.824</span></span></code></pre></div>
+<p>These coefficients are one set consistent with the printed data, not
+necessarily the paper’s own; the farm E row can be confirmed only with
+the unrounded data.</p>
 </div>
 <div id="murty-russell-and-levkoff-2012-the-by-production-example" class="section level2">
 <h2>Murty, Russell and Levkoff (2012): the by-production example</h2>
 <p>Their Example 1 is a constant-returns technology with one input, one
 good output <span class="math inline">\(y\)</span> and one bad output,
 written <span class="math inline">\(z\)</span> in the paper (our <span class="math inline">\(b\)</span>), solved analytically in the paper.</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>mrl <span class="ot">&lt;-</span> <span class="fu">pgt_tech</span>(</span>
-<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>  <span class="at">x =</span> <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">2</span>), <span class="at">ncol =</span> <span class="dv">1</span>, <span class="at">dimnames =</span> <span class="fu">list</span>(<span class="cn">NULL</span>, <span class="st">&quot;x&quot;</span>)),</span>
-<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>  <span class="at">y =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">3</span> <span class="sc">/</span> <span class="dv">2</span>, <span class="dv">2</span> <span class="sc">/</span> <span class="dv">3</span>, <span class="dv">3</span>, <span class="dv">2</span>),</span>
-<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>  <span class="at">b =</span> <span class="fu">c</span>(<span class="dv">4</span>, <span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">5</span>, <span class="dv">3</span>),</span>
-<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>  <span class="at">u =</span> <span class="dv">1</span>, <span class="at">polluting =</span> <span class="st">&quot;x&quot;</span>,</span>
-<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>  <span class="at">id =</span> <span class="fu">paste0</span>(<span class="st">&quot;DMU&quot;</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>)</span>
-<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>)</span>
-<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a>bp <span class="ot">&lt;-</span> <span class="fu">pgt</span>(mrl, <span class="at">model =</span> <span class="st">&quot;byprod&quot;</span>, <span class="at">returns =</span> <span class="st">&quot;crs&quot;</span>)</span>
-<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a>rb <span class="ot">&lt;-</span> bp<span class="sc">$</span>results</span>
-<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">id =</span> rb<span class="sc">$</span>id, <span class="at">output_eff =</span> <span class="fu">round</span>(rb<span class="sc">$</span>output_eff, <span class="dv">4</span>),</span>
-<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a>           <span class="at">emission_eff =</span> <span class="fu">round</span>(rb<span class="sc">$</span>efficiency, <span class="dv">4</span>), <span class="at">mean_eff =</span> <span class="fu">round</span>(rb<span class="sc">$</span>mean_eff, <span class="dv">4</span>))</span>
-<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a><span class="co">#&gt;     id output_eff emission_eff mean_eff</span></span>
-<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a><span class="co">#&gt; 1 DMU1     1.0000       0.2500   0.6250</span></span>
-<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a><span class="co">#&gt; 2 DMU2     0.7500       1.0000   0.8750</span></span>
-<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a><span class="co">#&gt; 3 DMU3     0.3333       0.5000   0.4167</span></span>
-<span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a><span class="co">#&gt; 4 DMU4     0.7500       0.4000   0.5750</span></span>
-<span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a><span class="co">#&gt; 5 DMU5     0.5000       0.6667   0.5833</span></span></code></pre></div>
-<p>For DMU3 the output efficiency is <span class="math inline">\(1/3\)</span>, the emission efficiency <span class="math inline">\(1/2\)</span> and the graph measure <span class="math inline">\(5/12\)</span>; for DMU2 they are <span class="math inline">\(3/4\)</span>, <span class="math inline">\(1\)</span> and <span class="math inline">\(7/8\)</span>. These match the analytic scores in
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>mrl <span class="ot">&lt;-</span> <span class="fu">pgt_tech</span>(</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>  <span class="at">x =</span> <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">2</span>), <span class="at">ncol =</span> <span class="dv">1</span>, <span class="at">dimnames =</span> <span class="fu">list</span>(<span class="cn">NULL</span>, <span class="st">&quot;x&quot;</span>)),</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>  <span class="at">y =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">3</span> <span class="sc">/</span> <span class="dv">2</span>, <span class="dv">2</span> <span class="sc">/</span> <span class="dv">3</span>, <span class="dv">3</span>, <span class="dv">2</span>),</span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>  <span class="at">b =</span> <span class="fu">c</span>(<span class="dv">4</span>, <span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">5</span>, <span class="dv">3</span>),</span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>  <span class="at">u =</span> <span class="dv">1</span>, <span class="at">polluting =</span> <span class="st">&quot;x&quot;</span>,</span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>  <span class="at">id =</span> <span class="fu">paste0</span>(<span class="st">&quot;DMU&quot;</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>)</span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a>)</span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a>bp <span class="ot">&lt;-</span> <span class="fu">pgt</span>(mrl, <span class="at">model =</span> <span class="st">&quot;byprod&quot;</span>, <span class="at">returns =</span> <span class="st">&quot;crs&quot;</span>)</span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>rb <span class="ot">&lt;-</span> bp<span class="sc">$</span>results</span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">id =</span> rb<span class="sc">$</span>id, <span class="at">output_eff =</span> <span class="fu">round</span>(rb<span class="sc">$</span>output_eff, <span class="dv">4</span>),</span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a>           <span class="at">emission_eff =</span> <span class="fu">round</span>(rb<span class="sc">$</span>efficiency, <span class="dv">4</span>), <span class="at">mean_eff =</span> <span class="fu">round</span>(rb<span class="sc">$</span>mean_eff, <span class="dv">4</span>))</span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a><span class="co">#&gt;     id output_eff emission_eff mean_eff</span></span>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a><span class="co">#&gt; 1 DMU1     1.0000       0.2500   0.6250</span></span>
+<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a><span class="co">#&gt; 2 DMU2     0.7500       1.0000   0.8750</span></span>
+<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a><span class="co">#&gt; 3 DMU3     0.3333       0.5000   0.4167</span></span>
+<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a><span class="co">#&gt; 4 DMU4     0.7500       0.4000   0.5750</span></span>
+<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a><span class="co">#&gt; 5 DMU5     0.5000       0.6667   0.5833</span></span></code></pre></div>
+<p>For DMU3 the output efficiency is <span class="math inline">\(1/3\)</span>, the emission efficiency <span class="math inline">\(1/2\)</span> and their mean, the by-production
+efficiency index, <span class="math inline">\(5/12\)</span>; for DMU2
+they are <span class="math inline">\(3/4\)</span>, <span class="math inline">\(1\)</span> and <span class="math inline">\(7/8\)</span>. These match the analytic scores in
 the paper.</p>
 </div>
 <div id="coelli-lauwers-and-van-huylenbroeck-2007-coefficients-and-the-ee-te-x-eae-decomposition" class="section level2">
@@ -483,29 +504,29 @@ meat 0.0117 kg P per kg. The check confirms that the implemented cost
 model decomposes environmental efficiency as <span class="math inline">\(EE = TE \times EAE\)</span> with these
 coefficients; the model’s LPs are verified against hand-computed
 solutions in the test suite.</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>farms <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>  <span class="at">feed =</span> <span class="fu">c</span>(<span class="dv">200</span>, <span class="dv">210</span>, <span class="dv">190</span>, <span class="dv">205</span>),</span>
-<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>  <span class="at">piglet =</span> <span class="fu">c</span>(<span class="dv">20</span>, <span class="dv">22</span>, <span class="dv">18</span>, <span class="dv">21</span>),</span>
-<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>  <span class="at">meat =</span> <span class="fu">c</span>(<span class="dv">100</span>, <span class="dv">100</span>, <span class="dv">95</span>, <span class="dv">102</span>)</span>
-<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>)</span>
-<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>tech_c <span class="ot">&lt;-</span> <span class="fu">pgt_tech</span>(</span>
-<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a>  <span class="at">x =</span> <span class="fu">as.matrix</span>(farms[, <span class="fu">c</span>(<span class="st">&quot;feed&quot;</span>, <span class="st">&quot;piglet&quot;</span>)]),</span>
-<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a>  <span class="at">y =</span> farms<span class="sc">$</span>meat,</span>
-<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>  <span class="at">b =</span> <span class="fl">0.0124</span> <span class="sc">*</span> farms<span class="sc">$</span>feed <span class="sc">+</span> <span class="fl">0.0117</span> <span class="sc">*</span> farms<span class="sc">$</span>piglet <span class="sc">-</span> <span class="fl">0.0117</span> <span class="sc">*</span> farms<span class="sc">$</span>meat,</span>
-<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a>  <span class="at">u =</span> <span class="fu">c</span>(<span class="at">feed =</span> <span class="fl">0.0124</span>, <span class="at">piglet =</span> <span class="fl">0.0117</span>),</span>
-<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a>  <span class="at">v =</span> <span class="fl">0.0117</span></span>
-<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a>)</span>
-<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a>mbc <span class="ot">&lt;-</span> <span class="fu">pgt</span>(tech_c, <span class="at">model =</span> <span class="st">&quot;mb_cost&quot;</span>, <span class="at">returns =</span> <span class="st">&quot;crs&quot;</span>)</span>
-<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a>rc <span class="ot">&lt;-</span> mbc<span class="sc">$</span>results</span>
-<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">id =</span> rc<span class="sc">$</span>id, <span class="at">EE =</span> <span class="fu">round</span>(rc<span class="sc">$</span>efficiency, <span class="dv">4</span>),</span>
-<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a>           <span class="at">TE =</span> <span class="fu">round</span>(rc<span class="sc">$</span>te, <span class="dv">4</span>), <span class="at">EAE =</span> <span class="fu">round</span>(rc<span class="sc">$</span>eae, <span class="dv">4</span>))</span>
-<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a><span class="co">#&gt;   id     EE     TE    EAE</span></span>
-<span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a><span class="co">#&gt; 1  1 0.9955 1.0000 0.9955</span></span>
-<span id="cb6-19"><a href="#cb6-19" tabindex="-1"></a><span class="co">#&gt; 2  2 0.9442 0.9524 0.9914</span></span>
-<span id="cb6-20"><a href="#cb6-20" tabindex="-1"></a><span class="co">#&gt; 3  3 1.0000 1.0000 1.0000</span></span>
-<span id="cb6-21"><a href="#cb6-21" tabindex="-1"></a><span class="co">#&gt; 4  4 0.9885 0.9951 0.9934</span></span>
-<span id="cb6-22"><a href="#cb6-22" tabindex="-1"></a><span class="fu">all.equal</span>(rc<span class="sc">$</span>efficiency, rc<span class="sc">$</span>te <span class="sc">*</span> rc<span class="sc">$</span>eae)</span>
-<span id="cb6-23"><a href="#cb6-23" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>farms <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>  <span class="at">feed =</span> <span class="fu">c</span>(<span class="dv">200</span>, <span class="dv">210</span>, <span class="dv">190</span>, <span class="dv">205</span>),</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>  <span class="at">piglet =</span> <span class="fu">c</span>(<span class="dv">20</span>, <span class="dv">22</span>, <span class="dv">18</span>, <span class="dv">21</span>),</span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>  <span class="at">meat =</span> <span class="fu">c</span>(<span class="dv">100</span>, <span class="dv">100</span>, <span class="dv">95</span>, <span class="dv">102</span>)</span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>)</span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>tech_c <span class="ot">&lt;-</span> <span class="fu">pgt_tech</span>(</span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>  <span class="at">x =</span> <span class="fu">as.matrix</span>(farms[, <span class="fu">c</span>(<span class="st">&quot;feed&quot;</span>, <span class="st">&quot;piglet&quot;</span>)]),</span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>  <span class="at">y =</span> farms<span class="sc">$</span>meat,</span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a>  <span class="at">b =</span> <span class="fl">0.0124</span> <span class="sc">*</span> farms<span class="sc">$</span>feed <span class="sc">+</span> <span class="fl">0.0117</span> <span class="sc">*</span> farms<span class="sc">$</span>piglet <span class="sc">-</span> <span class="fl">0.0117</span> <span class="sc">*</span> farms<span class="sc">$</span>meat,</span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a>  <span class="at">u =</span> <span class="fu">c</span>(<span class="at">feed =</span> <span class="fl">0.0124</span>, <span class="at">piglet =</span> <span class="fl">0.0117</span>),</span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a>  <span class="at">v =</span> <span class="fl">0.0117</span></span>
+<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a>)</span>
+<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a>mbc <span class="ot">&lt;-</span> <span class="fu">pgt</span>(tech_c, <span class="at">model =</span> <span class="st">&quot;mb_cost&quot;</span>, <span class="at">returns =</span> <span class="st">&quot;crs&quot;</span>)</span>
+<span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a>rc <span class="ot">&lt;-</span> mbc<span class="sc">$</span>results</span>
+<span id="cb7-15"><a href="#cb7-15" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">id =</span> rc<span class="sc">$</span>id, <span class="at">EE =</span> <span class="fu">round</span>(rc<span class="sc">$</span>efficiency, <span class="dv">4</span>),</span>
+<span id="cb7-16"><a href="#cb7-16" tabindex="-1"></a>           <span class="at">TE =</span> <span class="fu">round</span>(rc<span class="sc">$</span>te, <span class="dv">4</span>), <span class="at">EAE =</span> <span class="fu">round</span>(rc<span class="sc">$</span>eae, <span class="dv">4</span>))</span>
+<span id="cb7-17"><a href="#cb7-17" tabindex="-1"></a><span class="co">#&gt;   id     EE     TE    EAE</span></span>
+<span id="cb7-18"><a href="#cb7-18" tabindex="-1"></a><span class="co">#&gt; 1  1 0.9955 1.0000 0.9955</span></span>
+<span id="cb7-19"><a href="#cb7-19" tabindex="-1"></a><span class="co">#&gt; 2  2 0.9442 0.9524 0.9914</span></span>
+<span id="cb7-20"><a href="#cb7-20" tabindex="-1"></a><span class="co">#&gt; 3  3 1.0000 1.0000 1.0000</span></span>
+<span id="cb7-21"><a href="#cb7-21" tabindex="-1"></a><span class="co">#&gt; 4  4 0.9885 0.9951 0.9934</span></span>
+<span id="cb7-22"><a href="#cb7-22" tabindex="-1"></a><span class="fu">all.equal</span>(rc<span class="sc">$</span>efficiency, rc<span class="sc">$</span>te <span class="sc">*</span> rc<span class="sc">$</span>eae)</span>
+<span id="cb7-23"><a href="#cb7-23" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
 <p>The identity <span class="math inline">\(EE = TE \times EAE\)</span>
 holds to machine precision. (The identity holds by construction of the
 reported components, so this check guards the wiring, not the
@@ -518,6 +539,9 @@ suite.)</p>
 <li>Coelli, T., Lauwers, L., &amp; Van Huylenbroeck, G. (2007).
 Environmental efficiency measurement and the materials balance
 condition. <em>Journal of Productivity Analysis</em>, 28(1-2), 3-12. <a href="doi:10.1007/s11123-007-0052-8" class="uri">doi:10.1007/s11123-007-0052-8</a></li>
+<li>Hampf, B., &amp; Rødseth, K. L. (2015). Carbon dioxide emission
+standards for U.S. power plants: An efficiency analysis perspective.
+<em>Energy Economics</em>, 50, 140-153. <a href="doi:10.1016/j.eneco.2015.04.001" class="uri">doi:10.1016/j.eneco.2015.04.001</a></li>
 <li>Murty, S., Russell, R. R., &amp; Levkoff, S. B. (2012). On modeling
 pollution-generating technologies. <em>Journal of Environmental
 Economics and Management</em>, 64(1), 117-135. <a href="doi:10.1016/j.jeem.2012.02.005" class="uri">doi:10.1016/j.jeem.2012.02.005</a></li>

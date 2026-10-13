@@ -9,22 +9,9 @@ data(pigfarms)
 pigfarms
 
 ## -----------------------------------------------------------------------------
-tech <- pgt_tech(
-  x = pigfarms[, c("uncontrolled", "labor", "capital")],
-  y = pigfarms$meat,
-  b = pigfarms$controlled,
-  u = c(1, 0, 0),
-  a = pigfarms$abatement,
-  id = pigfarms$farm
-)
-fit <- pgt(tech, model = "wgd")
-data.frame(farm = fit$results$id, b_star = fit$results$b_star,
-           z_star = fit$results$z_star, a_star = fit$results$a_star)
-
-## -----------------------------------------------------------------------------
 v <- 7 / 6
 u_feed <- (pigfarms$uncontrolled + v * pigfarms$meat) / pigfarms$feed
-tech3 <- pgt_tech(
+tech <- pgt_tech(
   x = pigfarms[, c("feed", "piglet", "labor", "capital")],
   y = pigfarms$meat,
   b = pigfarms$controlled,
@@ -33,7 +20,12 @@ tech3 <- pgt_tech(
   a = pigfarms$abatement,
   id = pigfarms$farm
 )
-fdmo <- pgt(tech3, model = "fdmo")
+fit <- pgt(tech, model = "wgd")
+data.frame(farm = fit$results$id, b_star = fit$results$b_star,
+           z_star = fit$results$z_star, a_star = fit$results$a_star)
+
+## -----------------------------------------------------------------------------
+fdmo <- pgt(tech, model = "fdmo")
 r3 <- fdmo$results
 comparison <- data.frame(
   farm = r3$id,
@@ -44,6 +36,21 @@ comparison <- data.frame(
   maximal_y = round(r3$maximal_y, 3)
 )
 comparison
+
+## -----------------------------------------------------------------------------
+u_c <- c(feed = 31 / 25, piglet = 349 / 300, labor = 0, capital = 0)
+x_pig <- as.matrix(pigfarms[, names(u_c)])
+z_c <- as.vector(x_pig %*% u_c) - v * pigfarms$meat
+a_c <- z_c - pigfarms$controlled
+c(uncontrolled = all(round(z_c, 1) == pigfarms$uncontrolled),
+  abatement = all(round(a_c, 1) == pigfarms$abatement))
+rc <- pgt(pgt_tech(x = x_pig, y = pigfarms$meat, b = pigfarms$controlled,
+                   u = u_c, v = v, a = a_c, id = pigfarms$farm),
+          model = "fdmo")$results
+data.frame(farm = rc$id, gross = round(rc$gross, 3),
+           good_eff = round(rc$good_eff, 3),
+           bad_eff = round(rc$bad_eff, 3),
+           maximal_y = round(rc$maximal_y, 3))
 
 ## -----------------------------------------------------------------------------
 mrl <- pgt_tech(

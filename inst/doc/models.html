@@ -253,11 +253,12 @@ u_{pi}&#39;x_i - v_{pi}&#39;y_i\)</span>, with DMU-specific coefficients
 <span class="math inline">\(u_{pi}\)</span> (a row of the <span class="math inline">\(L \times N \times P\)</span> array) and <span class="math inline">\(v_{pi}\)</span> (a row of the <span class="math inline">\(L \times M \times P\)</span> array).</p>
 <div id="weak-g-disposability-model-wgd" class="section level2">
 <h2>Weak-G-disposability (<code>model = &quot;wgd&quot;</code>)</h2>
-<p>Equation 6 of Rødseth (2025) minimises emissions over peer mixes that
-hold only the intended outputs at the evaluated unit’s levels: the
-inputs are decision variables, and the weak-G summing-up condition <span class="math inline">\(u_i&#39;\varepsilon_x + v_i&#39;\varepsilon_y =
+<p>Equation 6 of Rødseth (2025), which he presents as the DEA model of
+Hampf and Rødseth (2015), minimises emissions over peer mixes that hold
+only the intended outputs at the evaluated unit’s levels: the inputs are
+decision variables, and the weak-G slack constraint <span class="math inline">\(u_i&#39;\varepsilon_x + v_i&#39;\varepsilon_y =
 \varepsilon_b\)</span> ties the disposal slacks of inputs, outputs and
-the bad output together. Substituting the condition and setting the
+the bad output together. Substituting the constraint and setting the
 input slacks to zero collapses the programme to the reduced form solved
 by the package, <span class="math display">\[
 b^*_i = \min_{\lambda}\ \textstyle\sum_l \lambda_l
@@ -271,14 +272,19 @@ coefficients <span class="math inline">\(v_i\)</span>. Self-reference is
 always feasible, so every score <span class="math inline">\(b^*_i/b_i\)</span> lies in <span class="math inline">\((0, 1]\)</span>, and a materials-balance violation
 in the data does not affect the programme (the audit in
 <code>mb_check()</code> remains a data-quality check). When the
-abatement output is observed the optimal peer mix also delivers the
-projection’s implied uncontrolled emission <span class="math inline">\(z^* = \sum_l \lambda_l z_l\)</span>, with <span class="math inline">\(z_l = u_l&#39;x_l - v_l&#39;y_l\)</span> the
-peer’s materials-balance cap (equal to <span class="math inline">\(b_l +
-a_l\)</span> when the peer’s account closes), and abatement <span class="math inline">\(a^* = \sum_l \lambda_l a_l\)</span>.
-Correspondence to the paper is exercised numerically: the programme
-reproduces the Table 2 minima of Rødseth (2025) and agrees with an
-independent reference implementation in the test suite. The reported
-output duals are the total derivatives <span class="math inline">\(\partial b^*_i/\partial y_{mi} = \mu_m -
+abatement output is observed the fit also reports the projection’s
+abatement, held at the peer mix, <span class="math inline">\(a^* =
+\sum_l \lambda_l a_l\)</span>, and its implied uncontrolled emission
+<span class="math inline">\(z^* = \sum_l \lambda_l z_l + v_i&#39;(\sum_l
+\lambda_l y_l - y_i)\)</span>, with <span class="math inline">\(z_l =
+u_l&#39;x_l - v_l&#39;y_l\)</span> the peer’s materials-balance cap: the
+retained content of the output overshoot is disposed of as emission, so
+<span class="math inline">\(z^* - a^* = b^*_i\)</span> whenever every
+peer’s account closes (<span class="math inline">\(z_l = b_l +
+a_l\)</span>). Correspondence to the paper is exercised numerically: the
+programme reproduces the Table 2 minima of Rødseth (2025) and agrees
+with an independent reference implementation in the test suite. The
+reported output duals are the total derivatives <span class="math inline">\(\partial b^*_i/\partial y_{mi} = \mu_m -
 v_{mi}\)</span>, which can be negative when the retained content is
 large: producing more output binds more pollutant into the product.</p>
 </div>
@@ -334,10 +340,13 @@ pollutant. Self-reference is always feasible, so every score lies in
 </div>
 <div id="the-directional-representation-model-fdmo" class="section level2">
 <h2>The directional representation (<code>model = &quot;fdmo&quot;</code>)</h2>
-<p>The factorially determined multi-output form of Rødseth (2025, Eq.
-14), which his Proposition 4 derives from Eq. 13 by holding the
-abatement output <span class="math inline">\(a\)</span> at the evaluated
-unit’s own level: <span class="math display">\[
+<p>Rødseth (2025) writes the weak-G directional programme as Eq. 12 and,
+under common coefficients (Proposition 3), its indirect form as Eq. 13.
+The package fits Eq. 13 with the abatement output <span class="math inline">\(a\)</span> held at the evaluated unit’s own level
+and the sign restrictions <span class="math inline">\(\theta_y, \theta_b
+\ge 0\)</span> of Eq. 14; Proposition 4 states that this programme can
+equally be written as the factorially determined multi-output convex
+regression of Eq. 14: <span class="math display">\[
 \begin{aligned}
 \max_{\lambda,\, \theta_y,\, \theta_b}\quad &amp; \theta_y + \theta_b \\
 \text{s.t.}\quad
@@ -345,7 +354,8 @@ unit’s own level: <span class="math display">\[
 &amp; \textstyle\sum_l \lambda_l a_l \ge a_i, \\
 &amp; \textstyle\sum_l \lambda_l x_{nl} \le x_{ni}, \qquad n = 1, \dots,
 N,\\
-&amp; v_i\,\theta_y - \theta_b = c_{pi} - b_i - a_i, \\
+&amp; v_i\,\theta_y - \theta_b = c_{pi} - b_i - a_i, \qquad
+  \theta_b \le b_i, \\
 &amp; \textstyle\sum_l \lambda_l = 1, \qquad
   \lambda \ge 0,\ \theta_y \ge 0,\ \theta_b \ge 0.
 \end{aligned}
@@ -356,9 +366,23 @@ infeasible or shift the closure gap into the scores, and
 <code>pgt()</code> warns when it detects them. When the account closes,
 the row forces <span class="math inline">\(\theta_b =
 v_i\,\theta_y\)</span>. The gross inefficiency <span class="math inline">\(\theta_y + \theta_b\)</span> adds good-output
-units to bad-output units (direction <span class="math inline">\((1,
-1)\)</span>), so it is unit-dependent. The model is defined for a single
-intended output.</p>
+units to bad-output units, so the reported number is unit-dependent. The
+optimum is not: with closure gap <span class="math inline">\(g_i =
+c_{pi} - b_i - a_i\)</span> the balance row sets <span class="math inline">\(\theta_b = v_i\,\theta_y - g_i\)</span>, the
+objective equals <span class="math inline">\((1 + v_i)\,\theta_y -
+g_i\)</span>, and a coherent change of units rescales it to <span class="math inline">\((s + r v_i)\,\theta_y - r g_i\)</span> with the
+same maximiser. The model is defined for a single intended output.</p>
+<p>Rødseth derives the programme for coefficients common to all units
+(his Proposition 3 assumes no input or output quality differences). The
+row <span class="math inline">\(\theta_b \le b_i\)</span> is the
+package’s addition for producer-specific coefficients: the balance row
+applies the evaluated unit’s coefficients to a peer mix whose members
+carry other coefficients, and without the row a unit whose inputs carry
+little pollutant could borrow a pollutant-rich peer’s output and receive
+a negative projected emission. With common coefficients and closed
+accounts the projected emission is at least the peer mix’s emission
+<span class="math inline">\(\sum_l \lambda_l b_l \ge 0\)</span>, so the
+row never binds.</p>
 </div>
 <div id="the-decomposition-stage-programmes-pgt_decomposetype-rodseth" class="section level2">
 <h2>The decomposition stage programmes
@@ -420,9 +444,14 @@ EE = \frac{\min\{u_{pi}&#39;\chi :\ \sum_l \lambda_l x_{nl} \le \chi_n\
 {u_{pi}&#39;x_i},
 \]</span> with environmental-allocative efficiency <span class="math inline">\(EAE = EE / TE\)</span>. The principal score is
 <span class="math inline">\(EE\)</span>, a material-inflow ratio rather
-than an emission ratio; the implied minimal controlled emission <span class="math inline">\(u_{pi}&#39;\chi^* - v_{pi}&#39;y_i\)</span> is
-reported as <code>b_star</code> and can be negative under DMU-specific
-coefficients, in which case <code>pgt()</code> warns.</p>
+than an emission ratio; the implied minimal uncontrolled emission
+(material surplus) <span class="math inline">\(u_{pi}&#39;\chi^* -
+v_{pi}&#39;y_i\)</span> is reported as <code>b_star</code> and can be
+negative under DMU-specific coefficients, in which case
+<code>pgt()</code> warns. Coelli et al. solve both programmes under
+constant returns, which <code>returns = &quot;crs&quot;</code> reproduces by
+dropping the row <span class="math inline">\(\sum_l \lambda_l =
+1\)</span>.</p>
 </div>
 <div id="the-by-production-intersection-model-byprod" class="section level2">
 <h2>The by-production intersection (<code>model = &quot;byprod&quot;</code>)</h2>
@@ -442,10 +471,13 @@ E_2 = \min\{\psi :\ \textstyle\sum_l \mu_l b_l \le \psi b_i,\ \sum_l
 1\}.
 \]</span> <span class="math inline">\(E_2\)</span> is the principal
 environmental efficiency; <code>mean_eff</code> is the arithmetic mean
-<span class="math inline">\((E_1 + E_2)/2\)</span>, a package summary in
-the spirit of, but not identical to, the Färe-Grosskopf-Lovell graph
-measure, and not a measure defined in the source. If either
-sub-programme fails, every score of that unit is <code>NA</code>.</p>
+<span class="math inline">\((E_1 + E_2)/2\)</span>. With one good and
+one bad output it is the by-production efficiency index of Murty,
+Russell and Levkoff (2012); with several outputs their index averages
+output-specific factors in the manner of the Russell measure (Färe and
+Lovell 1978), whereas <span class="math inline">\(E_1\)</span> is
+radial. If either sub-programme fails, every score of that unit is
+<code>NA</code>.</p>
 </div>
 <div id="weak-disposability-model-wd" class="section level2">
 <h2>Weak disposability (<code>model = &quot;wd&quot;</code>)</h2>
@@ -476,8 +508,12 @@ pooled panel); the index is defined for a single good output. Under
 <code>technology = &quot;wd&quot;</code> the distance uses the Kuosmanen
 weak-disposability technology above with <span class="math inline">\(\sum_{l \in R} z_l b_l = (1 - \beta) b_k\)</span>
 and <span class="math inline">\(\sum_{l \in R} z_l y_l \ge (1 + \beta)
-y_k\)</span>; this is the technology under which Chung, Färe and
-Grosskopf (1997) and Oh (2010) define the index. Under
+y_k\)</span>. With <code>returns = &quot;crs&quot;</code> the abatement weights
+<span class="math inline">\(w\)</span> are redundant and, for one bad
+output, this is the constant-returns technology of Chung, Färe and
+Grosskopf (1997, Eq. 3.9), which Oh (2010) also uses; both papers index
+several bad outputs jointly, whereas <code>pgt_ml()</code> indexes one
+pollutant at a time. The variable-returns default extends it. Under
 <code>technology = &quot;input_envelope&quot;</code> and <code>&quot;envelope&quot;</code>
 the bad-output row is the free-disposal envelope <span class="math inline">\(\sum_{l \in R} \lambda_l b_l \le (1 - \beta)
 b_k\)</span>, with and without the input rows; these exploratory
@@ -493,6 +529,12 @@ undesirable outputs: A directional distance function approach.
 <li>Coelli, T., Lauwers, L., &amp; Van Huylenbroeck, G. (2007).
 Environmental efficiency measurement and the materials balance
 condition. <em>Journal of Productivity Analysis</em>, 28(1-2), 3-12. <a href="doi:10.1007/s11123-007-0052-8" class="uri">doi:10.1007/s11123-007-0052-8</a></li>
+<li>Färe, R., &amp; Lovell, C. A. K. (1978). Measuring the technical
+efficiency of production. <em>Journal of Economic Theory</em>, 19(1),
+150-162. <a href="doi:10.1016/0022-0531(78)90060-1" class="uri">doi:10.1016/0022-0531(78)90060-1</a></li>
+<li>Hampf, B., &amp; Rødseth, K. L. (2015). Carbon dioxide emission
+standards for U.S. power plants: An efficiency analysis perspective.
+<em>Energy Economics</em>, 50, 140-153. <a href="doi:10.1016/j.eneco.2015.04.001" class="uri">doi:10.1016/j.eneco.2015.04.001</a></li>
 <li>Kuosmanen, T. (2005). Weak disposability in nonparametric production
 analysis with undesirable outputs. <em>American Journal of Agricultural
 Economics</em>, 87(4), 1077-1082. <a href="doi:10.1111/j.1467-8276.2005.00788.x" class="uri">doi:10.1111/j.1467-8276.2005.00788.x</a></li>

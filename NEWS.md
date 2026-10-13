@@ -1,3 +1,158 @@
+# pgt 0.7.1
+
+* Every LP kernel now checks the point lp_solve returns against the
+  rows and bounds of its programme. lp_solve accepts a point once each
+  row holds within its tolerances on its own internally scaled model,
+  and on the unit-magnitude copy of the data a small unit's rows are of
+  order 1e-7, where those tolerances can exceed several per cent of
+  the row. On `uscoal` with the sulfur coefficients scaled by 0.9,
+  `model = "wgd_input_fixed"` returned status 0 at Painesville (plant
+  2936, 38 MWh) with `b_star` 6 per cent above the cap (`mb_headroom`
+  -0.39 t), although no peer mix emits less than the plant's own
+  6.543 t and the programme is infeasible. A row now fails when its
+  residual exceeds 1e-5 times the largest of its right-hand side, its
+  largest term and the unit's own pollutant level, plus 1e-7 times the
+  total peer weight times the row's largest coefficient on a peer
+  weight in the solution (lp_solve leaves weights of about 1e-8 on
+  peers it does not use); a failing point is reported as infeasible
+  (status 2) with `NA` scores, and a unit whose own observation is
+  feasible is retried under the alternative lp_solve settings as
+  before. On the shipped data no other status or score changes: across
+  every model, both peer sets and returns to scale, the decompositions
+  and 50 perturbations of the `uscoal` sulfur coefficients, the only
+  change is Painesville's status in the 0.9 scenario and in the 13
+  draws where it was reported above its cap.
+
+* `model = "wgd_input_fixed"` now decides whether a unit meets its
+  materials-balance caps (and so whether an infeasibility verdict is
+  retried) on the data with the relative 1e-5. The previous test
+  allowed an absolute 1e-8 on the unit-magnitude copy, 0.78 t of SO2 on
+  `uscoal`, so it took Painesville's 0.39 t excess for a met cap,
+  rejected lp_solve's correct verdict of infeasibility and accepted the
+  point above the cap from the first alternative scaling.
+
+* Documentation: citations corrected after a check against the cited
+  papers. No estimator changes.
+  - The weak-G-disposability technology is credited to Hampf and
+    Rodseth (2015); `"wgd"` scores it by the minimal-emission programme
+    of Rodseth (2025, Eq. 6).
+  - `model = "fdmo"` is Rodseth's Eq. 13 with abatement fixed at the
+    DMU's own level; Eq. 14 is the equivalent convex-regression form
+    (Proposition 4). Version 0.7.0 cited Eq. 14 for the programme.
+  - The `pigfarms` replication (vignette and tests) uses the good-output
+    coefficient v = 7/6 implied by farms A and B, under which `"wgd"`
+    reproduces every Table 2 target of Rodseth (2025). The v = 0 mapping
+    left farms A and B tied as peers, so the targets of farms B and C
+    were solver-dependent; that was a property of the mapping, not of
+    the source.
+  - `mean_eff` of `"byprod"` is described as Murty, Russell and
+    Levkoff's by-production efficiency index (one good and one bad
+    output), not as a variant of the graph measure.
+  - `boot_pgt()`: Kneip, Simar and Wilson (2008) prove the m-out-of-n
+    bootstrap with replacement consistent under VRS; the default rates
+    are credited to Kneip, Park and Simar (1998) for VRS and to Park,
+    Jeong and Simar (2010) for CRS.
+  - `pgt_ml()`: the global frontier removes the cross-period
+    infeasibility (Oh 2010), not the inconsistency of Aparicio, Pastor
+    and Zofio (2013); BPC is the best-practice gap change; the default
+    `"wd"` technology reproduces Oh's constant-returns technology with
+    `returns = "crs"`.
+  - `pgt_decompose()`: TGR is the technology gap ratio of Battese, Rao
+    and O'Donnell (2004), the metatechnology ratio of O'Donnell, Rao and
+    Battese (2008); WR is the efficiency against the group frontier.
+  - A second check against the full sources: `"wgd"` fits the
+    technology of Hampf and Rodseth (2015) with the minimal-emission
+    programme of Rodseth (2025, Eq. 6), whereas Hampf and Rodseth score
+    by a ratio of output to emission. For `"fdmo"`, Eq. 13 is the
+    indirect form of the directional programme of Eq. 12 under common
+    coefficients, and the sign restrictions come from Eq. 14.
+    `"byprod"` cites Murty, Russell and Levkoff (2012, Eqs. 4.5, 4.7,
+    5.7 and 7.1): their technology has constant returns, and their
+    application omits the abatement output, as `"byprod"` does.
+    `"wgd_input_fixed"` is documented as differing from weak
+    G-disposability at fixed inputs. The `uscoal` help notes that about
+    95 per cent of fuel sulfur converts to SO2 (Rodseth 2017). The
+    `boot_pgt()` and `pgt_ml()` help state the conditions of the cited
+    results.
+
+* Numerical robustness: every solve of `"wgd"`, `"envelope"`,
+  `"wgd_input_fixed"` and the stages of `pgt_decompose(type =
+  "rodseth")` is now checked against the bound that self-reference
+  gives. When the evaluated unit is among its peers (and, for
+  `"wgd_input_fixed"`, meets its own materials-balance caps), its
+  observation is feasible and attains `b`, so a solve returning
+  `b* > b`, or infeasibility, is a suboptimal vertex or a failed solve
+  of lp_solve. Such a solve, and any numerical failure (status 5), is
+  rebuilt and re-solved under two alternative lp_solve scalings and
+  then the primal simplex, a retry the decomposition stages alone had
+  before and only for failed solves. A unit whose every attempt still
+  returns `b* > b` gets status 1 (lp_solve's SUBOPTIMAL code) and `NA`
+  scores, and `pgt()` counts such units in its warning. A solve that
+  passes the check at the first attempt is unchanged. On a
+  1,142-plant-year steel panel in tonnes, 0.7.0 reported up to three
+  infeasible `"wgd_input_fixed"` programmes per specification as
+  numerical failures (status 5); every infeasible programme now
+  reports status 2, and every status matches an independent GLPK
+  solve.
+
+* New `test-scaling.R` on `steeldemo` with every quantity multiplied
+  by 1e6 (up to 1e13). It checks the decomposition's first stage
+  against its reduced form, solved separately on a copy in million
+  tonnes; `"wgd"`, `"wgd_input_fixed"`, `"envelope"` and the
+  decomposition against a common rescaling of the quantities;
+  `"wgd_input_fixed"` feasibility with and without
+  materials-balance violators; and the retry and its status-1
+  report. Without the rescaling of 0.7.0, 96 of the 180 first-stage
+  optima are suboptimal at this magnitude, two with production
+  technical efficiency above 1, and three self-feasible
+  `"wgd_input_fixed"` programmes are reported infeasible. The tests
+  mock an internal kernel, so `testthat (>= 3.1.7)` is suggested.
+
+* `model = "fdmo"` adds the row `theta_b <= b` (projected emission
+  non-negative). Rodseth's Eq. 14 is derived for coefficients common
+  to all units; with producer-specific coefficients the balance row
+  applies the evaluated unit's coefficients to a peer mix of units with
+  other coefficients, and a unit whose inputs carry little pollutant
+  could borrow a pollutant-rich peer's output and receive a negative
+  projected emission (two closed accounts suffice). Under common
+  coefficients and closed accounts the row never binds, so the
+  `pigfarms` Table 3 replication and every closed-account result with
+  common coefficients are unchanged.
+
+* `model = "wgd"`: `z_star` now adds the retained content of the output
+  overshoot, `z_star = sum(lambda * z) + v_i'(sum(lambda * y) - y_i)`,
+  so that `z_star - a_star = b_star` whenever the peers' accounts
+  close. The earlier `z_star` was the peer mix of caps alone and did
+  not match `b_star` when the optimal mix produced more than the unit
+  with `v > 0`. `b_star` and the scores are unchanged, and so is the
+  `pigfarms` Table 2 replication (`v = 0`).
+
+* `compare_models()` ranks scores within 1e-8 of each other as ties
+  in the Spearman matrix and the bottom-quartile overlap. Efficient
+  units score 1 up to solver noise (below 1e-9 on the shipped data),
+  and ranking that noise made the correlations depend on the solver
+  build: `mb_cost`-`wd` on `uscoal` was 0.221 with one 0.7.0 build and
+  0.247 with another. The returned `scores` are unrounded.
+
+* The Monte Carlo study `inst/simulations/coverage.R` now records
+  interval availability (`boot_pgt()` returns `NA` bounds when fewer
+  than `B/2` subsample LPs are feasible, which under VRS hits the units
+  with the largest output), reports coverage among units with an
+  interval and the share of all units whose interval exists and
+  covers, adds a curved frontier to the affine one and an `m` and
+  `kappa` sensitivity at `L = 100`, keeps per-replication results in
+  `coverage-reps.csv`, and reports Monte Carlo standard errors across
+  replications.
+
+* Documentation: the unit dependence of the `"fdmo"` gross score ends
+  at the reported sum. The balance row fixes `theta_b` given
+  `theta_y`, so the programme maximises `theta_y` and a coherent change
+  of units leaves the optimum unchanged; the earlier help text said
+  the optimiser could change. The replication vignette no longer calls
+  the farm E row of Rodseth's Table 3 inconsistent with a common `v`:
+  the paper prints one decimal, and common coefficients within that
+  rounding reproduce every printed row, as a new test asserts.
+
 # pgt 0.7.0
 
 New dataset with an observed abatement output, referee-driven

@@ -367,13 +367,14 @@ made the case for carrying it into frontier-based eco-efficiency models,
 and Dakpo, Jeanneaux and Latruffe (2016) survey how pollution-generating
 technologies have been modelled in nonparametric benchmarking since.</p>
 <p>Existing R packages handle undesirable outputs by transforming the
-data (the Seiford and Zhu 2002 translation in <code>deaR</code>) or by
-imposing weak disposability and directional distances
-(<code>nonparaeff</code>, <code>Benchmarking</code>). Neither approach
-carries a materials-balance account. <code>pgt</code> audits the account
-before estimation, lets it enter the estimators as a cap, an equality, a
-price system or an objective valuation depending on the model, and puts
-the competing axiom systems behind one interface.</p>
+data (the Seiford and Zhu 2002 translation in <code>deaR</code>, which
+also offers a directional formulation) or by imposing weak disposability
+and directional distances (<code>nonparaeff</code>,
+<code>Benchmarking</code>). Neither approach carries a materials-balance
+account. <code>pgt</code> audits the account before estimation, lets it
+enter the estimators as a cap, an equality, a price system or an
+objective valuation depending on the model, and puts the competing axiom
+systems behind one interface.</p>
 </div>
 <div id="building-a-technology" class="section level2">
 <h2>Building a technology</h2>
@@ -448,11 +449,11 @@ and <code>pgt()</code> warns. The weak-G-disposability programme of Eq.
 </div>
 <div id="estimating-environmental-efficiency" class="section level2">
 <h2>Estimating environmental efficiency</h2>
-<p>The weak-G-disposability model of Rødseth (2025, Eq. 6) minimises
-emissions over peer mixes that hold the good output at the DMU’s level,
-pricing any extra good output at the DMU’s retained-content coefficient
-<span class="math inline">\(v\)</span>; the inputs are decision
-variables (the programmes are stated in full in
+<p>The weak-G-disposability model of Hampf and Rødseth (2015), in the
+form of Eq. 6 of Rødseth (2025), minimises emissions over peer mixes
+that hold the good output at the DMU’s level, pricing any extra good
+output at the DMU’s retained-content coefficient <span class="math inline">\(v\)</span>; the inputs are decision variables (the
+programmes are stated in full in
 <code>vignette(&quot;models&quot;, &quot;pgt&quot;)</code>). The score is <span class="math inline">\(b^*_l / b_l\)</span>.</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">pgt</span>(tech, <span class="at">model =</span> <span class="st">&quot;wgd&quot;</span>)</span>
 <span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="fu">summary</span>(fit)</span>
@@ -485,11 +486,11 @@ b)\)</span> scatter.</p>
 <span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a><span class="co">#&gt;       group   n n_na median   mean median_dual_output</span></span>
 <span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a><span class="co">#&gt;  Integrated 105    0 0.1566 0.2543             0.6921</span></span>
 <span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a><span class="co">#&gt;    Minimill  75    0 0.6489 0.6606             0.2417</span></span></code></pre></div>
-<p>The directional representation of Rødseth (2025, Eq. 14) needs the
-closed account and holds abatement at the DMU’s own level; it expands
-the good output and contracts the bad output jointly, so its scores are
-in output units rather than ratios, and the materials-balance row ties
-the two together as <span class="math inline">\(\theta_b =
+<p>The directional representation of Rødseth (2025, Eqs. 12 and 13)
+needs the closed account and holds abatement at the DMU’s own level; it
+expands the good output and contracts the bad output jointly, so its
+scores are in output units rather than ratios, and the materials-balance
+row ties the two together as <span class="math inline">\(\theta_b =
 v\,\theta_y\)</span>.</p>
 <div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>fit_dir <span class="ot">&lt;-</span> <span class="fu">pgt</span>(tech, <span class="at">model =</span> <span class="st">&quot;fdmo&quot;</span>)</span>
 <span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="fu">summary</span>(fit_dir)</span>
@@ -536,10 +537,10 @@ the area under it is not a total-cost estimate.</p>
 <h2>Decomposing across production routes</h2>
 <p>With a technology group, <code>pgt_decompose()</code> splits
 environmental efficiency into a within-group and a technology-gap
-component. The envelope decomposition is an exact identity, Total <span class="math inline">\(=\)</span> WR <span class="math inline">\(\times\)</span> TGR, where WR is within-route
-reallocation and TGR the technology-gap ratio of the metafrontier
-tradition (Battese, Rao and O’Donnell 2004; O’Donnell, Rao and Battese
-2008).</p>
+component. The envelope decomposition is an exact identity, Total <span class="math inline">\(=\)</span> WR <span class="math inline">\(\times\)</span> TGR, where WR is the efficiency
+against the plant’s own route frontier and TGR the technology gap ratio
+of Battese, Rao and O’Donnell (2004), which O’Donnell, Rao and Battese
+(2008) call the metatechnology ratio.</p>
 <div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>dec <span class="ot">&lt;-</span> <span class="fu">pgt_decompose</span>(tech, <span class="at">type =</span> <span class="st">&quot;envelope&quot;</span>)</span>
 <span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="fu">summary</span>(dec)</span>
 <span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="co">#&gt; pgt decomposition: type = envelope, returns = vrs, DMUs = 180</span></span>
@@ -552,15 +553,14 @@ tradition (Battese, Rao and O’Donnell 2004; O’Donnell, Rao and Battese
 <span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
 <span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a><span class="co">#&gt; (share_* are medians of DMU-level shares; they need not sum to 1.</span></span>
 <span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a><span class="co">#&gt;  n_na counts DMUs with any NA component.)</span></span></code></pre></div>
-<p>The five-component source decomposition of Rødseth (2025, Eq. 11)
-traces each score to production technical efficiency, coefficient
-quality, production allocative efficiency, abatement technical
-efficiency and abatement allocative efficiency; it needs no groups, and
-the stage programmes are stated in
-<code>vignette(&quot;models&quot;, &quot;pgt&quot;)</code>. The abatement components have
-something to measure here because the panel observes
-<code>captured</code> and marks <code>capture_energy</code> as the
-control input.</p>
+<p>The five-component decomposition of Rødseth (2025, Eq. 11) traces
+each score to production technical efficiency, coefficient quality,
+production allocative efficiency, abatement technical efficiency and
+abatement allocative efficiency; it needs no groups, and the stage
+programmes are stated in <code>vignette(&quot;models&quot;, &quot;pgt&quot;)</code>. The
+abatement components have something to measure here because the panel
+observes <code>captured</code> and marks <code>capture_energy</code> as
+the control input.</p>
 <div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>dec5 <span class="ot">&lt;-</span> <span class="fu">pgt_decompose</span>(tech, <span class="at">type =</span> <span class="st">&quot;rodseth&quot;</span>)</span>
 <span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="fu">summary</span>(dec5)</span>
 <span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="co">#&gt; pgt decomposition: type = rodseth, returns = vrs, DMUs = 180</span></span>
@@ -672,6 +672,9 @@ pollution-generating technologies in performance benchmarking: Recent
 developments, limits and future prospects in the nonparametric
 framework. <em>European Journal of Operational Research</em>, 250(2),
 347-359. <a href="doi:10.1016/j.ejor.2015.07.024" class="uri">doi:10.1016/j.ejor.2015.07.024</a></li>
+<li>Hampf, B., &amp; Rødseth, K. L. (2015). Carbon dioxide emission
+standards for U.S. power plants: An efficiency analysis perspective.
+<em>Energy Economics</em>, 50, 140-153. <a href="doi:10.1016/j.eneco.2015.04.001" class="uri">doi:10.1016/j.eneco.2015.04.001</a></li>
 <li>Lauwers, L. (2009). Justifying the incorporation of the materials
 balance principle into frontier-based eco-efficiency models.
 <em>Ecological Economics</em>, 68(6), 1605-1614. <a href="doi:10.1016/j.ecolecon.2008.08.022" class="uri">doi:10.1016/j.ecolecon.2008.08.022</a></li>
